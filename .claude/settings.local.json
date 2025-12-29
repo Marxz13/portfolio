@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir:*)",
+      "Bash(cd:*)",
+      "Bash(powershell -Command \"Get-ChildItem -Path ''D:\\\\Porfolio'' -Force -Recurse | Select-Object FullName, Mode\")",
+      "Bash(powershell -Command:*)",
+      "WebFetch(domain:marzallan.netlify.app)",
+      "WebSearch",
+      "Bash(npx create-next-app:*)",
+      "Bash(npm install:*)"
+    ]
+  }
+}
