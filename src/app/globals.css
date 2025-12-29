@@ -5,33 +5,33 @@
   --foreground: 222 47% 11%;
   --card: 0 0% 100%;
   --card-foreground: 222 47% 11%;
-  --primary: 192 91% 40%;
+  --primary: 160 84% 24%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 270 60% 60%;
+  --secondary: 160 60% 45%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 20% 45%;
-  --accent: 192 91% 95%;
-  --accent-foreground: 192 91% 30%;
-  --border: 214 32% 91%;
-  --ring: 192 91% 50%;
+  --muted: 160 20% 96%;
+  --muted-foreground: 160 15% 40%;
+  --accent: 160 84% 95%;
+  --accent-foreground: 160 84% 20%;
+  --border: 160 20% 90%;
+  --ring: 160 84% 30%;
 }
 
 .dark {
-  --background: 222 47% 5%;
-  --foreground: 210 40% 98%;
-  --card: 222 47% 8%;
-  --card-foreground: 210 40% 98%;
-  --primary: 192 91% 50%;
-  --primary-foreground: 222 47% 5%;
-  --secondary: 270 60% 60%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 217 33% 17%;
-  --muted-foreground: 215 20% 65%;
-  --accent: 217 33% 17%;
-  --accent-foreground: 192 91% 50%;
-  --border: 217 33% 17%;
-  --ring: 192 91% 50%;
+  --background: 160 30% 4%;
+  --foreground: 160 20% 98%;
+  --card: 160 30% 7%;
+  --card-foreground: 160 20% 98%;
+  --primary: 160 84% 39%;
+  --primary-foreground: 160 84% 5%;
+  --secondary: 160 60% 50%;
+  --secondary-foreground: 160 20% 98%;
+  --muted: 160 25% 15%;
+  --muted-foreground: 160 15% 65%;
+  --accent: 160 30% 15%;
+  --accent-foreground: 160 84% 45%;
+  --border: 160 25% 18%;
+  --ring: 160 84% 40%;
 }
 
 @theme inline {
@@ -61,10 +61,19 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Smooth theme transition */
+html.transitioning,
+html.transitioning *,
+html.transitioning *::before,
+html.transitioning *::after {
+  transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, fill 0.3s ease, box-shadow 0.3s ease !important;
+}
+
 body {
   background: hsl(var(--background));
   color: hsl(var(--foreground));
   font-family: var(--font-sans), system-ui, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .dark ::-webkit-scrollbar {
@@ -72,31 +81,48 @@ body {
 }
 
 .dark ::-webkit-scrollbar-track {
-  background: hsl(222 47% 8%);
+  background: hsl(160 30% 6%);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: hsl(217 33% 25%);
+  background: hsl(160 25% 25%);
   border-radius: 4px;
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: hsl(217 33% 35%);
+  background: hsl(160 25% 35%);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, hsl(192 91% 50%) 0%, hsl(270 60% 60%) 100%);
+  background: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(140 70% 50%) 50%, hsl(160 84% 55%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 .glow {
-  box-shadow: 0 0 20px hsla(192, 91%, 50%, 0.3);
+  box-shadow: 0 0 20px hsla(160, 84%, 39%, 0.3);
+}
+
+.glow-emerald {
+  box-shadow: 0 0 30px hsla(160, 84%, 39%, 0.4), 0 0 60px hsla(160, 84%, 39%, 0.2);
 }
 
 .glass {
-  background: hsla(222, 47%, 8%, 0.8);
+  background: hsla(160, 30%, 7%, 0.8);
   backdrop-filter: blur(12px);
-  border: 1px solid hsla(217, 33%, 25%, 0.5);
+  border: 1px solid hsla(160, 25%, 25%, 0.5);
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px hsla(160, 84%, 39%, 0.5), 0 0 10px hsla(160, 84%, 39%, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 15px hsla(160, 84%, 39%, 0.8), 0 0 25px hsla(160, 84%, 39%, 0.5);
+  }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
 }

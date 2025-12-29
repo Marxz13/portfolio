@@ -8,7 +8,8 @@ export const siteConfig = {
   links: {
     github: "https://github.com/Marxz13",
     linkedin: "https://linkedin.com/in/marzallan",
-    email: "mailto:your-email@example.com",
+    email: "mailto:marzallan13@gmail.com",
+    cv: "/Marzallan_Ismail_Full_Stack_Developer_2025.pdf",
   },
   author: {
     name: "Marz",

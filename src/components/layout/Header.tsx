@@ -23,7 +23,13 @@ export function Header() {
   }, []);
 
   const toggleTheme = () => {
+    // Add transitioning class for smooth animation
+    document.documentElement.classList.add("transitioning");
     setTheme(theme === "dark" ? "light" : "dark");
+    // Remove transitioning class after animation completes
+    setTimeout(() => {
+      document.documentElement.classList.remove("transitioning");
+    }, 300);
   };
 
   return (

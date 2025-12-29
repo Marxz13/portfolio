@@ -27,11 +27,19 @@ export interface TransformedProject {
   topics: string[];
   updatedAt: string;
   featured: boolean;
+  screenshot?: string;
 }
 
 const GITHUB_API = "https://api.github.com";
 const GITHUB_USERNAME = "Marxz13";
 const FEATURED_REPOS = ["Car-Rental", "property_price_prediction", "Personal-website-react"];
+
+// Map project names to screenshot paths (add your screenshots to public/projects/)
+const PROJECT_SCREENSHOTS: Record<string, string> = {
+  "Car-Rental": "/projects/car-rental.png",
+  "property_price_prediction": "/projects/property-prediction.png",
+  "Personal-website-react": "/projects/personal-website.png",
+};
 
 export async function getGitHubRepos(): Promise<GitHubRepo[]> {
   const response = await fetch(
@@ -75,6 +83,7 @@ export async function getTransformedProjects(): Promise<TransformedProject[]> {
         topics: repo.topics || [],
         updatedAt: repo.updated_at,
         featured: FEATURED_REPOS.includes(repo.name),
+        screenshot: PROJECT_SCREENSHOTS[repo.name],
       }))
       .sort((a, b) => {
         if (a.featured && !b.featured) return -1;

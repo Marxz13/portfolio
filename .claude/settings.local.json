@@ -8,7 +8,11 @@
       "WebFetch(domain:marzallan.netlify.app)",
       "WebSearch",
       "Bash(npx create-next-app:*)",
-      "Bash(npm install:*)"
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls -la \"D:\\\\Porfolio\\\\src\\\\components\"\" 2>/dev/null || echo \"Checking components structure \")",
+      "Bash(copy \"D:\\\\Porfolio\\\\Marz_cv \\(1\\).pdf\" \"D:\\\\Porfolio\\\\public\\\\Marz_CV.pdf\")",
+      "Bash(npm run dev:*)"
     ]
   }
 }

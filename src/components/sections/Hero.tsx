@@ -1,9 +1,17 @@
 "use client";
 
+import { Suspense, lazy } from "react";
 import { motion } from "framer-motion";
-import { ArrowDown, Github, Linkedin } from "lucide-react";
+import { ArrowDown, Github, Linkedin, FileDown } from "lucide-react";
 import { siteConfig } from "@/config/site";
 import { fadeInUp, staggerContainer } from "@/lib/animations";
+
+// Lazy load the 3D component for better performance
+const FloatingShapes = lazy(() =>
+  import("@/components/three/FloatingShapes").then((mod) => ({
+    default: mod.FloatingShapes,
+  }))
+);
 
 export function Hero() {
   return (
@@ -12,15 +20,21 @@ export function Hero() {
       className="min-h-screen flex items-center justify-center relative overflow-hidden"
     >
       {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5" />
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-background to-secondary/5 pointer-events-none" />
+
+      {/* 3D Floating Shapes - Interactive layer */}
+      <Suspense fallback={null}>
+        <FloatingShapes />
+      </Suspense>
 
       {/* Animated background circles */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/10 rounded-full blur-3xl" />
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/5 rounded-full blur-3xl" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-secondary/5 rounded-full blur-3xl" />
       </div>
 
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+      {/* Content - pointer-events-none on container, auto on interactive elements */}
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10 pointer-events-none">
         <motion.div
           variants={staggerContainer}
           initial="hidden"
@@ -63,13 +77,21 @@ export function Hero() {
           {/* CTA Buttons */}
           <motion.div
             variants={fadeInUp}
-            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 pointer-events-auto"
           >
             <a
               href="#projects"
               className="px-8 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:opacity-90 transition-opacity glow"
             >
               View My Work
+            </a>
+            <a
+              href={siteConfig.links.cv}
+              download
+              className="px-8 py-3 border border-primary text-primary rounded-full font-medium hover:bg-primary hover:text-primary-foreground transition-all flex items-center gap-2"
+            >
+              <FileDown className="h-4 w-4" />
+              Download CV
             </a>
             <a
               href="#contact"
@@ -82,7 +104,7 @@ export function Hero() {
           {/* Social Links */}
           <motion.div
             variants={fadeInUp}
-            className="flex items-center justify-center gap-4 mt-8"
+            className="flex items-center justify-center gap-4 mt-8 pointer-events-auto"
           >
             <a
               href={siteConfig.links.github}
@@ -104,28 +126,28 @@ export function Hero() {
             </a>
           </motion.div>
         </motion.div>
-
-        {/* Scroll indicator */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 1, duration: 0.5 }}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2"
-        >
-          <a
-            href="#about"
-            className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <span className="text-sm">Scroll down</span>
-            <motion.div
-              animate={{ y: [0, 8, 0] }}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              <ArrowDown className="h-5 w-5" />
-            </motion.div>
-          </a>
-        </motion.div>
       </div>
+
+      {/* Scroll indicator - positioned at bottom of section */}
+      <motion.div
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 1, duration: 0.5 }}
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20"
+      >
+        <a
+          href="#about"
+          className="flex flex-col items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <span className="text-sm">Scroll down</span>
+          <motion.div
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          >
+            <ArrowDown className="h-5 w-5" />
+          </motion.div>
+        </a>
+      </motion.div>
     </section>
   );
 }

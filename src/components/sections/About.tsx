@@ -90,11 +90,11 @@ export function About() {
                   <p className="text-sm text-muted-foreground">Projects</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-card border border-border">
-                  <p className="text-2xl font-bold text-primary">3+</p>
+                  <p className="text-2xl font-bold text-primary">2+</p>
                   <p className="text-sm text-muted-foreground">Years</p>
                 </div>
                 <div className="text-center p-4 rounded-lg bg-card border border-border">
-                  <p className="text-2xl font-bold text-primary">5+</p>
+                  <p className="text-2xl font-bold text-primary">15+</p>
                   <p className="text-sm text-muted-foreground">Technologies</p>
                 </div>
               </div>
