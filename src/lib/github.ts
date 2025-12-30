@@ -41,6 +41,11 @@ const PROJECT_SCREENSHOTS: Record<string, string> = {
   "Personal-website-react": "/projects/personal-website.png",
 };
 
+// Map project names to live demo URLs (overrides GitHub homepage)
+const PROJECT_DEMOS: Record<string, string> = {
+  "property_price_prediction": "https://propvalue.marzallan.com",
+};
+
 export async function getGitHubRepos(): Promise<GitHubRepo[]> {
   const response = await fetch(
     `${GITHUB_API}/users/${GITHUB_USERNAME}/repos?sort=updated&per_page=100`,
@@ -76,7 +81,7 @@ export async function getTransformedProjects(): Promise<TransformedProject[]> {
           .join(" "),
         description: repo.description || "No description available",
         url: repo.html_url,
-        demo: repo.homepage,
+        demo: PROJECT_DEMOS[repo.name] || repo.homepage,
         language: repo.language || "Unknown",
         stars: repo.stargazers_count,
         forks: repo.forks_count,
