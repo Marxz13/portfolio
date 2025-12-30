@@ -34,11 +34,11 @@ const GITHUB_API = "https://api.github.com";
 const GITHUB_USERNAME = "Marxz13";
 const FEATURED_REPOS = ["Car-Rental", "property_price_prediction", "Personal-website-react"];
 
-// Map project names to screenshot paths (add your screenshots to public/projects/)
+// Map project names to screenshot paths (add your screenshots to public/images/projects/)
 const PROJECT_SCREENSHOTS: Record<string, string> = {
-  "Car-Rental": "/projects/car-rental.png",
-  "property_price_prediction": "/projects/property-prediction.png",
-  "Personal-website-react": "/projects/personal-website.png",
+  "Car-Rental": "/images/projects/car-rental.png",
+  "property_price_prediction": "/images/projects/property-prediction.png",
+  "Personal-website-react": "/images/projects/personal-website.png",
 };
 
 // Map project names to live demo URLs (overrides GitHub homepage)
