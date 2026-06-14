@@ -197,7 +197,7 @@ const Square = ({ size = 7, color = "var(--accent)" }: { size?: number; color?: 
 
 
 /* ── Work-card hover: slide the hovered card to the row's center and lift
-   it forward — like pulling a folder out of a cabinet. Driven with GSAP so
+   it forward - like pulling a folder out of a cabinet. Driven with GSAP so
    the centering distance is measured per layout (offsetLeft/Width ignore any
    current transform, so it's robust mid-animation and across breakpoints). */
 const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
@@ -211,14 +211,14 @@ const prefersReduced = () =>
 
 /* ── Work-card hover ──────────────────────────────────────────────
    Handlers live on the stationary ".work-slot" (the hover zone never moves),
-   while only the inner ".work-mover" slides — so a card pulled to center can't
+   while only the inner ".work-mover" slides - so a card pulled to center can't
    slip out from under the cursor and flicker. A full-page dim overlay fades in
    to focus the active card; cards that carry a screenshot slide further left
    once centered and reveal it on the right. Works for pointer + keyboard.
 
    `slotTimelines` tracks each slot's active timeline so a re-hover can kill a
    still-running release (and cancel its z-index reset). `hoverZ` is a monotonic
-   counter so the newest hover always sits above a card still animating back —
+   counter so the newest hover always sits above a card still animating back -
    otherwise two cards momentarily share z-index 50 and DOM order wins, leaving
    the card you just moved to stuck behind the previous one. */
 const slotTimelines = new WeakMap<HTMLElement, gsap.core.Timeline>();
@@ -343,6 +343,43 @@ export default function Portfolio() {
         });
       }, 3200);
 
+      // ── EXPERIENCE: draw the accent spine on scroll + ignite date nodes ──
+      // Scrubbed to the timeline container's own scroll progress so the accent
+      // fill tracks the cursor 1:1, and each prominent date node lights to accent
+      // the instant the draw front passes it (the dates are the anchor points, so
+      // that's where the motion resolves). Purely additive: the grey base spine
+      // (.tl-spine) is always drawn in CSS and .tl-draw defaults to a full line,
+      // so if reduced-motion is set this whole context never runs and the spine
+      // still reads as one complete, connected timeline. Node thresholds are
+      // evenly spaced (idx/(n-1)) - exact for the current 3 entries (start/mid/end);
+      // switch to measuring each node's offsetTop if entries grow many + uneven.
+      const tlEl = el.querySelector<HTMLElement>("[data-tl]");
+      const tlDraw = el.querySelector<HTMLElement>("[data-tl-draw]");
+      if (tlEl && tlDraw) {
+        const tlNodes = gsap.utils.toArray<HTMLElement>("[data-tl-node]", tlEl);
+        gsap.fromTo(
+          tlDraw,
+          { scaleY: 0 },
+          {
+            scaleY: 1,
+            ease: "none",
+            scrollTrigger: {
+              trigger: tlEl,
+              start: "top 72%",   // begin drawing as the timeline enters
+              end: "bottom 78%",  // finish near the last node
+              scrub: 0.6,         // small smoothing = buttery, not laggy
+              onUpdate: (self) => {
+                const p = self.progress;
+                tlNodes.forEach((node, idx) => {
+                  const threshold = tlNodes.length > 1 ? idx / (tlNodes.length - 1) : 0;
+                  node.classList.toggle("is-lit", p >= threshold - 0.001);
+                });
+              },
+            },
+          }
+        );
+      }
+
       return () => {
         clearTimeout(heroSafety);
         clearTimeout(revealSafety);
@@ -352,8 +389,120 @@ export default function Portfolio() {
     return () => ctx.revert();
   }, []);
 
+  // Decorative parallax "matrix" grid: drift + subtly scale the fixed background
+  // grid layer a few px opposite the cursor (plus a small capped scroll term),
+  // eased in a self-parking rAF lerp. Separate from the GSAP context above; bails
+  // (leaving the static CSS grid) on reduced-motion or coarse / no-hover pointers.
+  useEffect(() => {
+    const host = root.current;
+    if (!host) return;
+
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const noMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const finePointer = window.matchMedia("(pointer: fine)").matches;
+    const canHover = window.matchMedia("(hover: hover)").matches;
+    if (noMotion || !finePointer || !canHover) return;
+
+    const grid = host.querySelector<HTMLElement>(".matrix-grid");
+    if (!grid) return;
+
+    // ── tuning (all subtle; all provably inside the 64px CSS bleed) ──
+    const MOUSE = 14;       // px max translate (opposite the cursor)
+    const SCALE = 0.012;    // max extra scale (~0.4px growth) for "depth"
+    const SCROLL = 0.04;    // scroll -> Y drift factor
+    const SCROLLCAP = 18;   // px hard cap on the scroll contribution
+    const MAXY = 44;        // px hard clamp on total Y (< 64 bleed - scale growth - 1)
+    const EASE = 0.085;     // lerp factor (buttery, not laggy)
+    const REST = 0.02;      // settle threshold before parking the rAF loop
+
+    let tX = 0, tY = 0, tS = 0;   // targets (px / px / magnitude 0..1)
+    let cX = 0, cY = 0, cS = 0;   // current eased values
+    let raf = 0;
+    let running = false;
+
+    const clamp = (v: number, lo: number, hi: number) => (v < lo ? lo : v > hi ? hi : v);
+
+    const computeTargets = (clientX: number, clientY: number) => {
+      const w = window.innerWidth || 1;
+      const h = window.innerHeight || 1;
+      const nx = clamp((clientX / w) * 2 - 1, -1, 1);
+      const ny = clamp((clientY / h) * 2 - 1, -1, 1);
+      tX = -nx * MOUSE;                                   // push matrix AWAY from cursor
+      const scrollOff = clamp(window.scrollY * SCROLL, -SCROLLCAP, SCROLLCAP);
+      tY = clamp(-ny * MOUSE + scrollOff, -MAXY, MAXY);   // mouse + capped scroll, clamped
+      tS = Math.min(1, Math.hypot(nx, ny));               // depth scale, magnitude 0..1
+    };
+
+    const write = () => {
+      grid.style.setProperty("--mx", cX.toFixed(2) + "px");
+      grid.style.setProperty("--my", cY.toFixed(2) + "px");
+      grid.style.setProperty("--ms", (1 + cS * SCALE).toFixed(4));
+    };
+
+    const tick = () => {
+      cX += (tX - cX) * EASE;
+      cY += (tY - cY) * EASE;
+      cS += (tS - cS) * EASE;
+      const settled =
+        Math.abs(tX - cX) < REST &&
+        Math.abs(tY - cY) < REST &&
+        Math.abs(tS - cS) < REST;
+      if (settled) {
+        cX = tX; cY = tY; cS = tS;   // snap exact
+        write();
+        running = false;
+        raf = 0;
+        return;                       // PARK: no perpetual rAF when idle
+      }
+      write();
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    const start = () => {
+      if (running) return;
+      running = true;
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    let lastX = window.innerWidth / 2;
+    let lastY = window.innerHeight / 2;
+
+    const onPointerMove = (e: PointerEvent) => {
+      lastX = e.clientX; lastY = e.clientY;
+      computeTargets(lastX, lastY);   // cheap: no element geometry reads
+      start();                        // wake loop on input
+    };
+    const onScroll = () => {
+      computeTargets(lastX, lastY);   // recompute Y from last cursor + new scrollY
+      start();
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("scroll", onScroll);
+      if (raf) window.cancelAnimationFrame(raf);
+      running = false;
+      grid.style.removeProperty("--mx");
+      grid.style.removeProperty("--my");
+      grid.style.removeProperty("--ms");   // reset to identity on unmount/HMR
+    };
+  }, []);
+
   return (
     <div className="portfolio" ref={root}>
+      {/* Decorative parallax "matrix" grid. ONE position:fixed GPU layer behind all
+          content. Transparent sections (Hero/About/Contact) reveal it; opaque
+          var(--bg-2) sections (Work/Experience) paint over it - same as the old
+          .portfolio background, so it still won't show behind the timeline. Driven
+          only by CSS vars (--mx/--my/--ms) eased in a rAF lerp. With zero JS the vars
+          default to identity, so it renders a correct STATIC grid. aria-hidden +
+          pointer-events:none => inert, out of the a11y tree, never hit-tested. */}
+      <div className="matrix-drift" data-matrix="" aria-hidden="true">
+        <span className="matrix-grid" />
+      </div>
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
@@ -411,10 +560,15 @@ export default function Portfolio() {
           <span style={{ position: "absolute", bottom: 8, left: "clamp(60px,16vw,220px)", width: 11, height: 11, background: "var(--ink)" }} />
 
           <div className="hero-grid" style={{ display: "grid", gridTemplateColumns: "minmax(0,420px) 1fr", gap: "clamp(24px,5vw,60px)", alignItems: "center", minHeight: "min(80vh,740px)" }}>
-            {/* portrait — name overlaps its right edge */}
+            {/* portrait - name overlaps its right edge */}
             <div data-hero-frame="" style={{ position: "relative", zIndex: 1, width: "100%", maxWidth: 420 }}>
               <span style={{ position: "absolute", top: -6, left: -6, width: 16, height: 16, background: "var(--accent)", zIndex: 3 }} />
-              <PixelPortrait src={PROFILE.photo} label={`Portrait of ${PROFILE.name}, ${PROFILE.role}`} />
+              <PixelPortrait
+                src={PROFILE.photo}
+                label={`Portrait of ${PROFILE.name}, ${PROFILE.role}`}
+                altSrc={PROFILE.photoAlt}
+                altLabel={`Cartoon gorilla avatar of ${PROFILE.name}`}
+              />
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 11, fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)" }}>
                 <span>marz.png</span>
                 <span>[ pixel-rendered ]</span>
@@ -432,7 +586,7 @@ export default function Portfolio() {
                 </span>
               </div>
               <h1 data-hero-title="" style={{ margin: 0, lineHeight: 0.82 }}>
-                <span className="hero-wordmark" style={{ display: "block", position: "relative", marginLeft: "clamp(-210px,-16vw,-70px)" }}>
+                <span className="hero-wordmark" style={{ display: "block", position: "relative", marginLeft: "clamp(-110px,-8vw,-32px)" }}>
                   <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(4rem,12.5vw,9.5rem)", color: accentTint(22), letterSpacing: "0.01em", transform: "translate(11px,11px)", zIndex: 0 }}>
                     {PROFILE.name}
                   </span>
@@ -463,7 +617,7 @@ export default function Portfolio() {
             </div>
           </div>
 
-          {/* hero bottom — animated shout */}
+          {/* hero bottom - animated shout */}
           <div data-hero-shout="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(24px,4vh,52px)" }}>
             <span className="hero-shout" style={{ display: "inline-block", fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(1.3rem,3.6vw,2.8rem)", letterSpacing: "0.02em", lineHeight: 1, color: "var(--ink)" }}>
               AHHHHHHHHHHHHHH I WANT <span style={{ color: "var(--accent)" }}>PROBLEM!!</span>
@@ -481,12 +635,12 @@ export default function Portfolio() {
             <div className="about-lede" style={{ position: "relative", zIndex: 1, maxWidth: "62%" }}>
               <div data-reveal="" style={{ ...monoLabel, marginBottom: 24 }}>// About</div>
               <p data-reveal="" style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 500, fontSize: "clamp(1.5rem,3vw,2.7rem)", lineHeight: 1.26, letterSpacing: "-0.01em" }}>
-                I care about the details most people skip — the empty states, the loading flicker, the migration that runs at 3am{" "}
-                <span style={{ color: "var(--accent)" }}>without waking anyone.</span>
+                I don&apos;t skip details - only sometimes{" "}
+                <span style={{ color: "var(--accent)" }}>leg day.</span>
               </p>
             </div>
 
-            {/* stack — endless logo marquees, alternating direction per row */}
+            {/* stack - endless logo marquees, alternating direction per row */}
             <div data-reveal="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(32px,5vh,52px)" }}>
               <div style={{ ...monoLabel, marginBottom: 16 }}>// Stack</div>
               {STACK_ROWS.map((row, i) => (
@@ -510,7 +664,7 @@ export default function Portfolio() {
             </div>
 
             <p data-reveal="" className="about-aside" style={{ position: "relative", zIndex: 1, margin: "34px 0 0", marginLeft: "auto", maxWidth: "50ch", fontSize: 16, lineHeight: 1.7, color: "var(--muted)", textAlign: "right" }}>
-              I&apos;m a fullstack developer who likes quiet focus and loud results — designing the database, wiring the API, polishing the last pixel. I judge my work by one thing: did it actually ship, and does it hold up.
+              I&apos;m a fullstack developer who likes quiet focus and loud results - designing the database, wiring the API, polishing the last pixel. I judge my work by one thing: did it actually ship, and does it hold up.
             </p>
           </div>
         </section>
@@ -520,8 +674,8 @@ export default function Portfolio() {
           <div style={container}>
             <span className="section-num" style={{ ...watermark, top: "clamp(20px,4vw,60px)", left: "clamp(-20px,-1vw,0px)", color: "rgba(11,11,12,0.05)" }}>02</span>
             <div data-reveal="" style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "baseline", gap: 16, marginBottom: "clamp(34px,6vh,64px)" }}>
-              <h2 style={sectionTitle}>Selected Work</h2>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>[ 2024 — 2027 ]</span>
+              <h2 style={sectionTitle}>My Initiatives</h2>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>[ 2024 - 2027 ]</span>
             </div>
 
             <div style={{ position: "relative", display: "flex", flexDirection: "column" }}>
@@ -617,7 +771,7 @@ export default function Portfolio() {
                         >
                           <img
                             src={p.screenshot}
-                            alt={`${p.name} — Chrome extension screenshot`}
+                            alt={`${p.name} - Chrome extension screenshot`}
                             style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
                           />
                           <span
@@ -645,29 +799,41 @@ export default function Portfolio() {
                             pointerEvents: "none",
                           }}
                         >
-                          {p.panels.map((panel) => (
-                            <button
-                              key={panel.label}
-                              type="button"
-                              className="work-panel"
-                              aria-label={`Expand ${panel.label}`}
-                              onClick={(ev) => {
-                                ev.stopPropagation();
-                                setLightbox({ image: panel.image, label: panel.label });
-                              }}
-                              style={{ position: "relative", border: "1px solid var(--ink)", background: "var(--bg-2)", cursor: "pointer", overflow: "hidden", padding: 0 }}
-                            >
-                              {panel.image && (
+                          {p.panels.map((panel) =>
+                            panel.image ? (
+                              <button
+                                key={panel.label}
+                                type="button"
+                                className="work-panel"
+                                aria-label={`Expand ${panel.label}`}
+                                onClick={(ev) => {
+                                  ev.stopPropagation();
+                                  setLightbox({ image: panel.image, label: panel.label });
+                                }}
+                                style={{ position: "relative", border: "1px solid var(--ink)", background: "var(--bg-2)", cursor: "pointer", overflow: "hidden", padding: 0 }}
+                              >
                                 <img src={panel.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                              )}
-                              <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px", textAlign: "center", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--ink)" }}>
-                                {panel.label}
-                              </span>
-                              <span className="work-panel-expand" aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(31,70,255,0.92)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}>
-                                Expand &#8599;
-                              </span>
-                            </button>
-                          ))}
+                                <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px", textAlign: "center", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--ink)" }}>
+                                  {panel.label}
+                                </span>
+                                <span className="work-panel-expand" aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(31,70,255,0.92)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}>
+                                  Expand &#8599;
+                                </span>
+                              </button>
+                            ) : (
+                              // No screenshot yet: a "coming soon" slot framed in yellow caution tape.
+                              <div
+                                key={panel.label}
+                                className="work-panel-soon"
+                                style={{ position: "relative", border: "1px solid var(--ink)", overflow: "hidden" }}
+                              >
+                                <span style={{ position: "absolute", inset: 8, zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "0 6px", textAlign: "center" }}>
+                                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--ink)" }}>{panel.label}</span>
+                                  <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)" }}>Images coming soon</span>
+                                </span>
+                              </div>
+                            )
+                          )}
                         </div>
                       )}
                     </div>
@@ -684,36 +850,73 @@ export default function Portfolio() {
             <span className="section-num" style={{ ...watermark, bottom: "clamp(-30px,-3vw,-10px)", left: "clamp(-20px,-1vw,0px)", color: "rgba(11,11,12,0.05)" }}>03</span>
             <h2 data-reveal="" style={{ ...sectionTitle, position: "relative", zIndex: 1, marginBottom: "clamp(34px,6vh,60px)" }}>Experience</h2>
 
-            {EXPERIENCE.map((e, i) => (
-              <div
-                key={e.period}
-                data-reveal=""
-                className="exp-row"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  display: "grid",
-                  gridTemplateColumns: "150px 1fr",
-                  gap: "clamp(14px,3vw,40px)",
-                  padding: "26px clamp(20px,3vw,36px)",
-                  border: "1px solid var(--ink)",
-                  borderTop: i === 0 ? "1px solid var(--ink)" : "none",
-                  background: "var(--bg)",
-                  width: "min(100%,720px)",
-                  marginLeft: i % 2 === 1 ? "auto" : undefined,
-                  marginRight: i % 2 === 0 ? "auto" : undefined,
-                }}
-              >
-                <span style={{ fontFamily: "var(--mono)", fontSize: 13, color: e.current ? "var(--accent)" : "var(--muted)", fontWeight: e.current ? 700 : 400 }}>
-                  {e.period}
-                </span>
-                <div>
-                  <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.3rem,2.1vw,1.7rem)" }}>{e.role}</h3>
-                  <p style={{ margin: "9px 0 0", maxWidth: "54ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>{e.blurb}</p>
-                </div>
-              </div>
-            ))}
+            {/* Center-spine zig-zag timeline. The spine, accent draw, nodes, date
+                badges and connector ticks are decorative (aria-hidden); the in-card
+                period + role + blurb are the real, ordered reading content. The base
+                spine is pure CSS so the whole timeline is legible with zero JS; the
+                accent draw is a scroll-scrubbed enhancement layered on top that
+                DEFAULTS to a full line (see .tl-draw fallback). Current-role
+                distinction comes from the static .tl-row--current rules (no JS).
+                Collapses to a single left rail at <=768px. */}
+            <div data-tl="" className="tl-timeline" style={{ position: "relative", zIndex: 1 }}>
+              {/* base spine - pure CSS, always drawn */}
+              <span className="tl-spine" aria-hidden="true" />
+              {/* accent line-draw overlay - GSAP scrubs scaleY from 0 -> 1 on scroll;
+                  if the tween never runs it stays a full accent line (CSS default) */}
+              <span data-tl-draw="" className="tl-draw" aria-hidden="true" />
 
+              {EXPERIENCE.map((e, i) => {
+                const right = i % 2 === 0; // newest (i=0, current) on the RIGHT, then alternate - matches approved ASCII
+                return (
+                  <div
+                    key={e.period}
+                    data-reveal=""
+                    className={`tl-row${right ? " tl-row--right" : ""}${e.current ? " tl-row--current" : ""}`}
+                    style={{ position: "relative", zIndex: 1 }}
+                  >
+                    {/* date node sitting on the spine - the timeline's anchor point */}
+                    <div data-tl-node="" className="tl-node" aria-hidden="true">
+                      <span className="tl-dot" />
+                      <span
+                        className="tl-badge"
+                        style={{
+                          color: e.current ? "var(--accent)" : "var(--ink)",
+                          borderColor: e.current ? "var(--accent)" : "var(--ink)",
+                          fontWeight: e.current ? 700 : 400,
+                        }}
+                      >
+                        {e.period}
+                      </span>
+                    </div>
+
+                    {/* connector tick wiring the card back to the spine */}
+                    <span className="tl-tick" aria-hidden="true" />
+
+                    {/* brutalist hard-shadow card - sibling language to the Work cards */}
+                    <div className="tl-card" style={{ position: "relative", background: "var(--bg)", border: "1px solid var(--ink)", padding: "clamp(18px,2.4vw,28px)", boxShadow: "8px 8px 0 rgba(11,11,12,0.08)" }}>
+                      {/* period repeated as real text for reading order + no-CSS legibility */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: "var(--mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: e.current ? "var(--accent)" : "var(--muted)", fontWeight: e.current ? 700 : 400 }}>
+                        <Square size={7} color={e.current ? "var(--accent)" : "var(--ink)"} /> {e.period}
+                      </div>
+                      <h3 style={{ margin: "10px 0 0", fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.3rem,2.1vw,1.7rem)", lineHeight: 1.15 }}>{e.role}</h3>
+                      <p style={{ margin: "9px 0 0", maxWidth: "52ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>{e.blurb}</p>
+                      {e.link && (
+                        <a
+                          href={`https://${e.link}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="tl-link"
+                          aria-label={`Visit ${e.link} (opens in a new tab)`}
+                          style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 16, padding: "8px 12px", border: "1px solid var(--ink)", background: "var(--bg)", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--ink)", textDecoration: "none" }}
+                        >
+                          <Square size={7} color="var(--accent)" /> {e.link} <span aria-hidden="true">&#8599;</span>
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </section>
 
@@ -746,6 +949,9 @@ export default function Portfolio() {
               <a href={PROFILE.linkedin} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={btnGhost} aria-label="LinkedIn profile (opens in a new tab)">
                 linkedin
               </a>
+              <a href={`https://wa.me/${PROFILE.whatsapp}`} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={btnGhost} aria-label={`WhatsApp ${PROFILE.whatsappDisplay} (opens in a new tab)`}>
+                whatsapp / {PROFILE.whatsappDisplay}
+              </a>
               <a href={PROFILE.cv} download className="btn-accent" style={btnAccent}>
                 download cv
               </a>
@@ -757,7 +963,7 @@ export default function Portfolio() {
                 <div>
                   <div style={{ ...monoLabel, letterSpacing: "0.06em", marginBottom: 8 }}>This year on GitHub</div>
                   <div style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)", maxWidth: "44ch", lineHeight: 1.5 }}>
-                    A steady year of commits — public &amp; private.
+                    A steady year of commits - public &amp; private.
                   </div>
                 </div>
                 <a href={PROFILE.github} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--accent)", textDecoration: "none" }} aria-label={`Open github.com/${PROFILE.githubHandle.replace("@", "")} (opens in a new tab)`}>
@@ -768,7 +974,7 @@ export default function Portfolio() {
             </div>
 
             <footer style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: "clamp(44px,7vh,72px)", paddingTop: 24, borderTop: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--muted)" }}>
-              <span>&#169; 2026 {PROFILE.fullName} — {PROFILE.role}</span>
+              <span>&#169; 2026 {PROFILE.fullName} - {PROFILE.role}</span>
               <span>Built with GSAP · pixel-perfect</span>
             </footer>
           </div>

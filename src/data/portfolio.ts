@@ -1,5 +1,5 @@
 /* ───────────────────────────────────────────────────────────
-   Portfolio content — single source of truth.
+   Portfolio content - single source of truth.
    Swap these values for the real ones; the components are
    purely presentational and read everything from here.
    ─────────────────────────────────────────────────────────── */
@@ -14,6 +14,10 @@ export interface Profile {
   github: string;
   githubHandle: string;
   linkedin: string;
+  /** WhatsApp number digits for the wa.me link (country code, no symbols). */
+  whatsapp: string;
+  /** Human-readable WhatsApp number shown on the button. */
+  whatsappDisplay: string;
   location: string;
   /** Hiring status shown in the nav and hero, e.g. "Open to work". */
   status: string;
@@ -25,6 +29,8 @@ export interface Profile {
   contributions: number;
   /** Portrait used by the pixelization canvas. Replace with your own. */
   photo: string;
+  /** Alternate portrait (gorilla) the hero glitch-swaps to on first scroll. */
+  photoAlt: string;
   /** Short hero intro paragraph. */
   intro: string;
   /** Hero statement under the wordmark. */
@@ -49,7 +55,7 @@ export interface Project {
   tech: string[];
   /** Optional traction/highlight shown on the card, e.g. "454 live users worldwide". */
   metric?: string;
-  /** Optional build timeline, e.g. "2024 — EOY 2026". */
+  /** Optional build timeline, e.g. "2024 - EOY 2026". */
   timeline?: string;
   /** Optional screenshot revealed beside the card on hover (path under public/). */
   screenshot?: string;
@@ -66,9 +72,11 @@ export interface SkillGroup {
 }
 
 export interface ExperienceEntry {
-  period: string;       // "2024 — NOW"
+  period: string;       // "2024 - NOW"
   role: string;
   blurb: string;
+  /** Optional company/site URL (domain only) shown as a link subcard. */
+  link?: string;
   current?: boolean;
 }
 
@@ -88,16 +96,18 @@ export const PROFILE: Profile = {
   github: "https://github.com/Marxz13",
   githubHandle: "@Marxz13",
   linkedin: "https://linkedin.com/in/marzallan",
+  whatsapp: "601111433952",
+  whatsappDisplay: "+60 11-1143 3952",
   location: "Kuala Lumpur, MY",
   status: "Open to work",
   availability:
-    "Full-time Full-Stack & Software Engineering roles — Kuala Lumpur or remote.",
+    "Full-time Full-Stack & Software Engineering roles - Kuala Lumpur or remote.",
   cv: "/Mar_Zallan_Resume.pdf",
   contributions: 6000,
-  photo:
-    "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=900&h=1100&fit=crop&crop=faces&q=80",
+  photo: "/marz_human.png",
+  photoAlt: "/marz_gorilla.png",
   intro:
-    "Full-stack engineer shipping enterprise apps, SaaS platforms, and AI-native tools end to end — React/TypeScript on the front, Python & Node.js on the back, AWS underneath. I own products from architecture through CI/CD to production.",
+    "Full-stack engineer shipping enterprise apps, SaaS platforms, and AI-native tools end to end - React/TypeScript on the front, Python & Node.js on the back, AWS underneath. I own products from architecture through CI/CD to production.",
   statement: "I build software that ships, scales & stays out of the way.",
 };
 
@@ -120,9 +130,9 @@ export const PROJECTS: Project[] = [
     index: "01",
     name: "Tokkae",
     description:
-      "A Shopee-style multi-vendor marketplace built end-to-end across buyer & seller web, buyer & seller mobile apps, and an admin console — with real-time chat and a “One-Piece” recommendation feed.",
+      "A Shopee-style multi-vendor marketplace built end-to-end across buyer & seller web, buyer & seller mobile apps, and an admin console - with real-time chat and a “One-Piece” recommendation feed.",
     tech: ["Next.js 16", "React 19", "Supabase", "Go", "WebSockets"],
-    timeline: "2024 — EOY 2026",
+    timeline: "2024 - EOY 2026",
     panels: [
       { label: "Buyer Site" },
       { label: "Seller Site" },
@@ -135,7 +145,7 @@ export const PROJECTS: Project[] = [
     index: "02",
     name: "Zicy",
     description:
-      "An AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines — ChatGPT, Perplexity, Gemini — with a side-panel AI consultant.",
+      "An AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines - ChatGPT, Perplexity, Gemini - with a side-panel AI consultant.",
     tech: ["Chrome MV3", "JavaScript", "Python", "LLMs"],
     metric: "454 live users worldwide",
     screenshot: "/zicy-chromeex.png",
@@ -146,9 +156,9 @@ export const PROJECTS: Project[] = [
     index: "03",
     name: "Scale POS",
     description:
-      "A native, offline-first iPad point-of-sale for multi-vendor retail — F&B and retail under one org-level, multi-store dashboard, with BLE receipt printing and barcode scanning.",
+      "A native, offline-first iPad point-of-sale for multi-vendor retail - F&B and retail under one org-level, multi-store dashboard, with BLE receipt printing and barcode scanning.",
     tech: ["React Native", "Expo", "SQLite", "Convex"],
-    timeline: "2025 — EOY 2027",
+    timeline: "2025 - EOY 2027",
     panels: [
       { label: "POS Terminal" },
       { label: "Dashboard" },
@@ -159,9 +169,9 @@ export const PROJECTS: Project[] = [
     index: "04",
     name: "Scale Inventory",
     description:
-      "A Tauri + Rust desktop inventory system for F&B and retail — purchase orders, cycle counts, par-level reorder alerts, and recipe/BOM costing, synced offline-first to the Scale backend.",
+      "A Tauri + Rust desktop inventory system for F&B and retail - purchase orders, cycle counts, par-level reorder alerts, and recipe/BOM costing, synced offline-first to the Scale backend.",
     tech: ["Tauri", "Rust", "React", "TypeScript", "SQLite"],
-    timeline: "2025 — EOY 2027",
+    timeline: "2025 - EOY 2027",
     panels: [
       { label: "Desktop App" },
     ],
@@ -190,31 +200,34 @@ export const SKILLS: SkillGroup[] = [
 
 export const EXPERIENCE: ExperienceEntry[] = [
   {
-    period: "2025 — NOW",
+    period: "2025 - NOW",
     role: "Software Engineer · Zicy",
     blurb:
-      "Own core SaaS modules — Content Optimizer, billing/quota, admin, and the Chrome plugin — end to end, from REST API design to React dashboards to AWS production ops (EC2, GitHub Actions, Celery, Nginx). Shipped Stripe billing and AEO/GEO features for 15+ enterprise beta clients.",
+      "Own core SaaS modules - Content Optimizer, billing/quota, admin, and the Chrome plugin - end to end, from REST API design to React dashboards to AWS production ops (EC2, GitHub Actions, Celery, Nginx). Shipped Stripe billing and AEO/GEO features for 15+ enterprise beta clients.",
+    link: "zicy.com",
     current: true,
   },
   {
-    period: "2024 — 2025",
+    period: "2024 - 2025",
     role: "Junior Data Engineer · Growth.Pro",
     blurb:
       "Built an XGBoost property-price model (89% R²) over 15,000+ records, plus a production Flask REST API with PyTest coverage and automated data pipelines that cut manual processing 60%.",
+    link: "growthpro.asia",
   },
   {
-    period: "2023 — 2024",
+    period: "2023 - 2024",
     role: "Full-Stack Developer · Fuji Elevator",
     blurb:
-      "Architected a 32-page enterprise ERP for elevator operations: a React 18 + TypeScript front end with role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
+      "Worked with Fuji Elevator (alongside their team, not in-house) to help build an entire running system: a 32-page enterprise ERP for elevator operations, with a React 18 + TypeScript front end and role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
+    link: "fujielevator.com.kh",
   },
 ];
 
 export const EDUCATION: EducationEntry[] = [
   {
-    period: "2022 — 2025",
+    period: "2022 - 2025",
     school: "University of Nottingham Malaysia",
-    detail: "B.Sc. Computer Science — Second Class Honours, Upper Division (2:1)",
+    detail: "B.Sc. Computer Science - Second Class Honours, Upper Division (2:1)",
     location: "Semenyih, MY",
   },
 ];

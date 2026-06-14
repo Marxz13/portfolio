@@ -1,12 +1,12 @@
 /* ───────────────────────────────────────────────────────────
-   Marz Portfolio — design tokens, fonts, keyframes
+   Marz Portfolio - design tokens, fonts, keyframes
    Scope everything under `.portfolio` so it never leaks into the
    rest of the host app. All component styling is inline (see the
    .tsx files) and reads these CSS custom properties.
    ─────────────────────────────────────────────────────────── */
 
 /* Fonts (Pixelify Sans / Space Grotesk / Space Mono) are loaded via a
-   <link> in index.html for better performance — see the project README. */
+   <link> in index.html for better performance - see the project README. */
 
 .portfolio {
   /* color */
@@ -29,15 +29,9 @@
   font-family: var(--sans);
   -webkit-font-smoothing: antialiased;
   /* `clip` (not `hidden`) contains the bleeding watermark numerals without
-     turning .portfolio into a scroll container — which would break the
+     turning .portfolio into a scroll container - which would break the
      sticky nav (overflow-x:hidden forces overflow-y to auto). */
   overflow-x: clip;
-
-  /* faint pixel-paper grid */
-  background-image:
-    linear-gradient(var(--grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-  background-size: 32px 32px;
 }
 
 .portfolio *,
@@ -51,7 +45,47 @@
   color: #fff;
 }
 
-/* smooth in-page anchor scrolling — apply on <html> in the host app
+/* ── decorative parallax "matrix" grid layer ─────────────────────────
+   Faint 32px pixel-paper grid moved OFF .portfolio onto ONE position:fixed,
+   GPU-composited layer so a rAF lerp can drift + subtly scale it a few px
+   opposite the cursor (plus a tiny CAPPED fraction of scroll) for depth.
+   OVERFLOW-SAFE: position:fixed adds nothing to the scrollable area -> no new
+   scrollbars; overflow-x:clip on .portfolio is untouched. ANTI-SWIM: an infinite
+   uniform 32px tile pinned to the viewport never tracks content 1:1, so it can't
+   desync; any translate is a pure phase shift. STACKING: z-index:0 fixed FIRST
+   child + position:relative/z-index:auto sections share one paint group ordered
+   by DOM, so transparent sections reveal the grid and opaque var(--bg-2) sections
+   cover it - the matrix still won't show behind Experience. */
+.portfolio .matrix-drift {
+  position: fixed;
+  inset: 0;
+  z-index: 0;              /* above white base, below every section/nav/overlay */
+  pointer-events: none;    /* decorative: never intercepts hit-testing */
+  overflow: hidden;        /* clip the bled inner layer so edges never show */
+  contain: layout paint;   /* isolate layout/paint (no contain:strict size footgun) */
+}
+.portfolio .matrix-grid {
+  position: absolute;
+  inset: -64px;            /* bleed (2 * 32px, phase-aligned) hides edges during drift+scale */
+  --mx: 0px;               /* identity defaults = correct STATIC grid with zero JS */
+  --my: 0px;
+  --ms: 1;
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  transform: translate3d(var(--mx), var(--my), 0) scale(var(--ms));
+  transform-origin: center;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+/* Degrade: reduced-motion OR coarse/no-hover pointer => pinned static grid.
+   Belt-and-suspenders with the JS guard (which also bails in these cases). */
+@media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+  .portfolio .matrix-grid { transform: none; will-change: auto; }
+}
+
+/* smooth in-page anchor scrolling - apply on <html> in the host app
    or keep here if the portfolio owns the page */
 html:has(.portfolio) {
   scroll-behavior: smooth;
@@ -62,7 +96,7 @@ html:has(.portfolio) {
   to   { transform: translateX(-50%); }
 }
 
-/* Hero "AHHHH I WANT PROBLEM" — periodic jitter burst. */
+/* Hero "AHHHH I WANT PROBLEM" - periodic jitter burst. */
 @keyframes hero-shake {
   0%, 66%, 100% { transform: translate(0, 0) rotate(0deg); }
   70% { transform: translate(-3px, 1px) rotate(-1.4deg); }
@@ -99,7 +133,9 @@ html:has(.portfolio) {
 .portfolio .btn-dark:hover { background: var(--accent); transform: translateY(-2px); }
 
 .portfolio .btn-ghost { transition: background 0.25s, color 0.25s; }
-.portfolio .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+/* !important beats the inline `color: var(--ink)` on btnGhost so the text turns
+   light when the background fills dark on hover (github / linkedin, etc.). */
+.portfolio .btn-ghost:hover { background: var(--ink) !important; color: var(--bg) !important; }
 
 .portfolio .btn-accent { transition: background 0.25s, transform 0.25s; }
 .portfolio .btn-accent:hover { background: var(--ink); transform: translateY(-2px); }
@@ -182,11 +218,31 @@ html:has(.portfolio) {
   opacity: 1 !important;
 }
 
+/* "Images coming soon" placeholder panels — framed in yellow hazard ("caution")
+   tape so an un-filled slot reads as deliberately pending, not broken. The
+   striped gradient is the panel background; an inset ::after paints the panel
+   face over it, leaving the tape as a frame around the edge (the in-JSX text
+   sits above the face via z-index:1). */
+.portfolio .work-panel-soon {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f6c945 0 10px,
+    #1b1b14 10px 20px
+  );
+}
+.portfolio .work-panel-soon::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  z-index: 0;
+  background: var(--bg-2);
+}
+
 /* Disabled placeholder buttons must not react to the ghost hover fill. */
 .portfolio .btn-ghost:disabled,
 .portfolio .btn-ghost:disabled:hover {
-  background: none;
-  color: var(--ink);
+  background: none !important;
+  color: var(--ink) !important;
   cursor: not-allowed;
 }
 
@@ -200,8 +256,8 @@ html:has(.portfolio) {
 /* ── reveal safety net ───────────────────────────────────────────
    GSAP's gsap.from() sets inline opacity:0 while it runs (overriding
    this), so the animation still plays. This rule only takes effect when
-   the tween never runs — JS disabled, reduced-motion (we skip GSAP),
-   or a ScrollTrigger that never fired — guaranteeing content stays
+   the tween never runs - JS disabled, reduced-motion (we skip GSAP),
+   or a ScrollTrigger that never fired - guaranteeing content stays
    perceivable. */
 .portfolio [data-reveal] {
   opacity: 1;
@@ -256,14 +312,6 @@ html:has(.portfolio) {
   .portfolio .stack-col {
     margin-top: 0 !important;
   }
-  /* experience: stack period above role, single column, full width */
-  .portfolio .exp-row {
-    grid-template-columns: 1fr !important;
-    gap: 6px !important;
-    width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-  }
   /* about: full-width copy, no right alignment */
   .portfolio .about-lede {
     max-width: 100% !important;
@@ -290,5 +338,227 @@ html:has(.portfolio) {
   /* watermark numerals become noise at phone widths */
   .portfolio .section-num {
     display: none !important;
+  }
+}
+
+/* ── EXPERIENCE: center-spine zig-zag scroll timeline ────────────────
+   Brutalist hard-shadow cards hanging off a central spine, alternating
+   left/right per entry. Each card hangs from a prominent MONO date node
+   (the timeline's anchor point). Spine / accent draw / nodes / ticks are
+   decorative (aria-hidden in the JSX); the in-card period + role + blurb
+   stay real, ordered text.
+
+   Legibility needs ZERO JS: .tl-spine is a static token line and the
+   accent .tl-draw DEFAULTS to scaleY(1) (a full accent line). GSAP only
+   sets a partial scaleY while it actually scrubs, so reduced-motion /
+   JS-off / a missed trigger all leave a complete, connected spine.
+   Current-role distinction is also pure CSS (.tl-row--current). The
+   .is-lit class is a purely additive scroll enhancement (GSAP-only).
+   Class names are tl- prefixed to avoid colliding with the prior
+   .exp-row rules already in this file. */
+.portfolio .tl-timeline {
+  --tl-gutter: 168px;            /* width of the central node/spine column */
+  --tl-node: 14px;              /* node dot diameter */
+  position: relative;
+  width: min(100%, 940px);
+  margin: 0 auto;
+  padding: 4px 0 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* the connected line down the middle + the accent overlay on top of it */
+.portfolio .tl-spine,
+.portfolio .tl-draw {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  margin-left: -1px;
+  pointer-events: none;
+  z-index: 0;
+}
+.portfolio .tl-spine { background: var(--line); }   /* always visible, no JS */
+/* accent draw: GSAP scrubs scaleY 0 -> 1. CSS fallback = full + visible, so
+   if the tween never runs the timeline still reads as one connected spine. */
+.portfolio .tl-draw {
+  background: var(--accent);
+  transform-origin: top center;
+  transform: scaleY(1);
+  opacity: 0.9;
+}
+
+/* one entry = a 3-track grid: [ card | node/spine | card ] */
+.portfolio .tl-row {
+  display: grid;
+  grid-template-columns: 1fr var(--tl-gutter) 1fr;
+  align-items: center;
+  column-gap: clamp(14px, 2.4vw, 34px);
+}
+.portfolio .tl-row + .tl-row { margin-top: clamp(26px, 5vh, 56px); }
+
+/* node lives in the centre column on every row */
+.portfolio .tl-node {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  z-index: 2;
+}
+.portfolio .tl-dot {
+  width: var(--tl-node);
+  height: var(--tl-node);
+  background: var(--ink);
+  border: 1px solid var(--ink);
+  box-shadow: 0 0 0 5px var(--bg-2);  /* punch a clean hole over the spine */
+  transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+.portfolio .tl-badge {
+  display: inline-block;
+  padding: 5px 10px;
+  border: 1px solid var(--ink);
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* card occupies an outer column; alternate side per row = the zig-zag.
+   min-width:0 lets the 1fr track shrink so long blurbs can't blow out the
+   grid / push the spine off-centre / cause horizontal overflow. */
+.portfolio .tl-card {
+  grid-column: 1;
+  grid-row: 1;
+  min-width: 0;
+  max-width: 100%;
+  transition: transform 0.28s ease, box-shadow 0.28s ease;
+}
+.portfolio .tl-row--right .tl-card { grid-column: 3; }
+
+/* connector tick: from the spine edge out to the card */
+.portfolio .tl-tick {
+  grid-row: 1;
+  grid-column: 1;
+  align-self: center;
+  justify-self: end;
+  width: clamp(14px, 2.4vw, 34px);
+  height: 2px;
+  margin-right: calc(clamp(14px, 2.4vw, 34px) * -1);
+  background: var(--line);
+  pointer-events: none;
+  z-index: 1;
+}
+.portfolio .tl-row--right .tl-tick {
+  grid-column: 3;
+  justify-self: start;
+  margin-right: 0;
+  margin-left: calc(clamp(14px, 2.4vw, 34px) * -1);
+}
+
+/* hover lift - same accent hard-shadow language as the Work cards */
+.portfolio .tl-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 16px 16px 0 rgba(31, 70, 255, 0.18) !important;
+}
+.portfolio .tl-row--right .tl-card:hover { transform: translate(4px, -4px); }
+
+/* link subcard inside a timeline card - inverts to accent on hover/focus.
+   !important beats the inline base styles on the <a>, matching the .tl-card pattern. */
+.portfolio .tl-link {
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.portfolio .tl-link:hover,
+.portfolio .tl-link:focus-visible {
+  background: var(--accent) !important;
+  color: var(--bg) !important;
+  border-color: var(--accent) !important;
+}
+
+/* current role: distinctly accent-anchored even before the draw reaches it
+   - all of these are static (no JS), so the current entry stands out under
+   reduced-motion / JS-off too. */
+.portfolio .tl-row--current .tl-card {
+  border-color: var(--accent) !important;
+  box-shadow: 8px 8px 0 rgba(31, 70, 255, 0.14) !important;
+}
+.portfolio .tl-row--current .tl-tick { background: var(--accent); }
+.portfolio .tl-row--current .tl-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+/* "lit" = the scroll-draw front has passed this node (GSAP toggles .is-lit).
+   Purely additive enhancement; nothing depends on it for legibility. */
+.portfolio .tl-node.is-lit .tl-dot {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 5px var(--bg-2), 0 0 0 7px rgba(31, 70, 255, 0.18);
+}
+.portfolio .tl-node.is-lit .tl-badge {
+  border-color: var(--accent);
+  box-shadow: 3px 3px 0 rgba(31, 70, 255, 0.16);
+}
+
+/* ── mobile (<=768px): collapse to a single LEFT-rail timeline ───────
+   A center spine with alternating cards can't fit a phone, so below 768px
+   the spine moves to a left rail and every card - left or right variant -
+   stacks full width to its right with one consistent tick. The on-rail
+   date badge is hidden (the in-card mono period already carries the date).
+   Inline styles on the cards are beaten with !important to match the
+   file's mobile idiom. */
+@media (max-width: 768px) {
+  .portfolio .tl-timeline {
+    width: 100% !important;
+    padding-left: 6px !important;
+  }
+  /* spine + accent draw hug the left rail */
+  .portfolio .tl-spine,
+  .portfolio .tl-draw {
+    left: 8px !important;
+    margin-left: 0 !important;
+  }
+  /* each entry: node on the rail, card full width to its right */
+  .portfolio .tl-row,
+  .portfolio .tl-row--right {
+    grid-template-columns: auto minmax(0, 1fr) !important;
+    column-gap: 18px !important;
+    align-items: start !important;
+  }
+  .portfolio .tl-row + .tl-row { margin-top: 22px !important; }
+  .portfolio .tl-node {
+    grid-column: 1 !important;
+    align-items: flex-start !important;
+  }
+  /* centre the 14px dot on the 2px rail (rail at 8px, padding 6px) */
+  .portfolio .tl-dot { margin-left: 0 !important; }
+  .portfolio .tl-card,
+  .portfolio .tl-row--right .tl-card {
+    grid-column: 2 !important;
+    min-width: 0 !important;
+    transform: none !important;
+  }
+  /* one consistent tick on the left rail for every card */
+  .portfolio .tl-tick,
+  .portfolio .tl-row--right .tl-tick {
+    grid-column: 1 !important;
+    justify-self: end !important;
+    align-self: start !important;
+    width: 14px !important;
+    margin: 22px 0 0 0 !important;
+    margin-right: -14px !important;
+  }
+  .portfolio .tl-row--right .tl-tick { margin-left: 0 !important; }
+  /* the on-rail badge is redundant with the in-card period on mobile */
+  .portfolio .tl-badge { display: none !important; }
+  /* keep the hover lift subtle / single-direction on the touch layout */
+  .portfolio .tl-card:hover,
+  .portfolio .tl-row--right .tl-card:hover {
+    transform: translate(-3px, -3px) !important;
   }
 }
