@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, MouseEvent as ReactMouseEvent, useEffect, useRef } from "react";
+import { CSSProperties, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -117,27 +117,34 @@ const SKILL_OFFSETS = ["0px", "clamp(0px,4vw,52px)", "clamp(0px,8vw,104px)"];
 const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
 const CARD_SHADOW_HOVER = "16px 16px 0 rgba(31,70,255,0.18)";
 
-const pullCardToCenter = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-  const card = e.currentTarget;
+// The hover handlers live on the stationary "slot" wrapper (the hover zone
+// never moves), while only the inner .work-card slides — so a card pulled to
+// center can't slip out from under the cursor and flicker. Works for pointer
+// hover and keyboard focus alike.
+const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const container = card.parentElement;
-  if (!container) return;
-  const dx = (container.clientWidth - card.offsetWidth) / 2 - card.offsetLeft;
-  gsap.set(card, { zIndex: 50 });
+  const slot = e.currentTarget;
+  const container = slot.parentElement;
+  const card = slot.querySelector<HTMLElement>(".work-card");
+  if (!container || !card) return;
+  const dx = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
+  gsap.set(slot, { zIndex: 50 });
   gsap.to(card, {
     x: dx,
-    y: -10,
-    scale: 1.03,
+    y: -12,
+    scale: 1.04,
     boxShadow: CARD_SHADOW_HOVER,
-    duration: 0.45,
+    duration: 0.5,
     ease: "power3.out",
     overwrite: "auto",
   });
 };
 
-const releaseCard = (e: ReactMouseEvent<HTMLAnchorElement>) => {
-  const card = e.currentTarget;
+const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const slot = e.currentTarget;
+  const card = slot.querySelector<HTMLElement>(".work-card");
+  if (!card) return;
   gsap.to(card, {
     x: 0,
     y: 0,
@@ -146,7 +153,7 @@ const releaseCard = (e: ReactMouseEvent<HTMLAnchorElement>) => {
     duration: 0.45,
     ease: "power3.out",
     overwrite: "auto",
-    onComplete: () => gsap.set(card, { zIndex: card.dataset.restZ || "" }),
+    onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }),
   });
 };
 
@@ -351,55 +358,66 @@ export default function Portfolio() {
                 const right = i % 2 === 1;
                 const isLink = Boolean(p.href && p.href !== "#");
                 return (
-                  <a
+                  <div
                     key={p.index}
-                    href={isLink ? p.href : undefined}
-                    target={isLink ? "_blank" : undefined}
-                    rel={isLink ? "noopener noreferrer" : undefined}
+                    className="work-slot"
                     data-reveal=""
                     data-rest-z={3 + i}
-                    className="work-card"
                     onMouseEnter={pullCardToCenter}
                     onMouseLeave={releaseCard}
+                    onFocus={pullCardToCenter}
+                    onBlur={releaseCard}
                     style={{
                       position: "relative",
                       alignSelf: right ? "flex-end" : "flex-start",
                       width: "min(100%,720px)",
-                      marginTop: i === 0 ? 0 : "clamp(-44px,-4vw,-24px)",
+                      // heavy overlap = tightly packed, file-cabinet stack
+                      marginTop: i === 0 ? 0 : "clamp(-160px,-13vw,-120px)",
                       zIndex: 3 + i,
-                      background: "var(--bg)",
-                      border: "1px solid var(--ink)",
-                      padding: "clamp(24px,3vw,40px)",
-                      textDecoration: "none",
-                      color: "var(--ink)",
-                      boxShadow: "8px 8px 0 rgba(11,11,12,0.08)",
                     }}
                   >
-                    <span style={{ position: "absolute", top: "clamp(-30px,-2.4vw,-18px)", [right ? "left" : "right"]: 18, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3rem,6vw,5rem)", color: "var(--bg)", WebkitTextStroke: "2px var(--ink)", lineHeight: 1 } as CSSProperties}>
-                      {p.index}
-                    </span>
-                    <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
-                      {p.name}
-                    </h3>
-                    {p.timeline && (
-                      <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
-                        {p.timeline}
+                    <a
+                      href={isLink ? p.href : undefined}
+                      target={isLink ? "_blank" : undefined}
+                      rel={isLink ? "noopener noreferrer" : undefined}
+                      className="work-card"
+                      style={{
+                        position: "relative",
+                        display: "block",
+                        background: "var(--bg)",
+                        border: "1px solid var(--ink)",
+                        padding: "clamp(18px,2.4vw,28px)",
+                        textDecoration: "none",
+                        color: "var(--ink)",
+                        boxShadow: "8px 8px 0 rgba(11,11,12,0.08)",
+                      }}
+                    >
+                      <span style={{ position: "absolute", top: "clamp(-30px,-2.4vw,-18px)", [right ? "left" : "right"]: 18, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3rem,6vw,5rem)", color: "var(--bg)", WebkitTextStroke: "2px var(--ink)", lineHeight: 1 } as CSSProperties}>
+                        {p.index}
+                      </span>
+                      <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
+                        {p.name}
+                      </h3>
+                      {p.timeline && (
+                        <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
+                          {p.timeline}
+                        </div>
+                      )}
+                      <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
+                        {p.description}
+                      </p>
+                      {p.metric && (
+                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
+                          <Square size={7} /> {p.metric}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
+                        {p.tech.map((t) => (
+                          <span key={t} style={chip}>{t}</span>
+                        ))}
                       </div>
-                    )}
-                    <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
-                      {p.description}
-                    </p>
-                    {p.metric && (
-                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
-                        <Square size={7} /> {p.metric}
-                      </div>
-                    )}
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
-                      {p.tech.map((t) => (
-                        <span key={t} style={chip}>{t}</span>
-                      ))}
-                    </div>
-                  </a>
+                    </a>
+                  </div>
                 );
               })}
             </div>

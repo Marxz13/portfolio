@@ -69,6 +69,10 @@ html:has(.portfolio) {
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio [data-marquee-track] { animation: none !important; }
+  /* Without motion there is no hover-to-reveal, so un-stack the work cards
+     and keep every card fully visible. */
+  .portfolio .work-slot { margin-top: 24px !important; }
+  .portfolio .work-slot:first-child { margin-top: 0 !important; }
 }
 
 /* ── interactions (hover/focus states) ───────────────────────── */
@@ -151,12 +155,12 @@ html:has(.portfolio) {
     margin-left: 0 !important;
   }
   /* work cards: drop the diagonal overlap and stack cleanly */
-  .portfolio .work-card {
+  .portfolio .work-slot {
     align-self: stretch !important;
     width: 100% !important;
     margin-top: 0 !important;
   }
-  .portfolio .work-card + .work-card {
+  .portfolio .work-slot + .work-slot {
     margin-top: 28px !important;
   }
   /* stack: remove the vertical stagger */

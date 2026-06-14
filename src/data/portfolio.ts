@@ -103,8 +103,17 @@ export const PROJECTS: Project[] = [
     index: "03",
     name: "Scale POS",
     description:
-      "A multi-vendor retail-ops platform — F&B and retail under one org-level, multi-store dashboard. Scale POS (native, offline-first iPad) and Scale Inventory (Tauri + Rust desktop) on a Convex backend.",
-    tech: ["React Native", "Tauri", "Rust", "Convex", "SQLite"],
+      "A native, offline-first iPad point-of-sale for multi-vendor retail — F&B and retail under one org-level, multi-store dashboard, with BLE receipt printing and barcode scanning.",
+    tech: ["React Native", "Expo", "SQLite", "Convex"],
+    timeline: "2025 — EOY 2027",
+    href: "https://scalekh.com",
+  },
+  {
+    index: "04",
+    name: "Scale Inventory",
+    description:
+      "A Tauri + Rust desktop inventory system for F&B and retail — purchase orders, cycle counts, par-level reorder alerts, and recipe/BOM costing, synced offline-first to the Scale backend.",
+    tech: ["Tauri", "Rust", "React", "TypeScript", "SQLite"],
     timeline: "2025 — EOY 2027",
     href: "https://scalekh.com",
   },
