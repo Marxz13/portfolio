@@ -18,7 +18,48 @@ import {
   EDUCATION,
 } from "./data/portfolio";
 
+import type { IconType } from "react-icons";
+import {
+  SiTypescript, SiJavascript, SiPython, SiGo, SiGnubash,
+  SiReact, SiNextdotjs, SiExpo, SiTailwindcss, SiVite,
+  SiNodedotjs, SiFastapi, SiFlask, SiCelery, SiApachekafka,
+  SiPostgresql, SiMongodb, SiRedis, SiSqlite,
+  SiDocker, SiGithubactions, SiNginx, SiGit, SiLinux,
+} from "react-icons/si";
+import { FaAws } from "react-icons/fa";
+
 gsap.registerPlugin(ScrollTrigger);
+
+/* Tech stack shown as a logo wall in the About section. */
+const STACK: { name: string; Icon: IconType }[] = [
+  { name: "TypeScript", Icon: SiTypescript },
+  { name: "JavaScript", Icon: SiJavascript },
+  { name: "Python", Icon: SiPython },
+  { name: "Go", Icon: SiGo },
+  { name: "Bash", Icon: SiGnubash },
+  { name: "React", Icon: SiReact },
+  { name: "Next.js", Icon: SiNextdotjs },
+  { name: "Expo", Icon: SiExpo },
+  { name: "Tailwind", Icon: SiTailwindcss },
+  { name: "Vite", Icon: SiVite },
+  { name: "Node.js", Icon: SiNodedotjs },
+  { name: "FastAPI", Icon: SiFastapi },
+  { name: "Flask", Icon: SiFlask },
+  { name: "Celery", Icon: SiCelery },
+  { name: "Kafka", Icon: SiApachekafka },
+  { name: "PostgreSQL", Icon: SiPostgresql },
+  { name: "MongoDB", Icon: SiMongodb },
+  { name: "Redis", Icon: SiRedis },
+  { name: "SQLite", Icon: SiSqlite },
+  { name: "AWS", Icon: FaAws },
+  { name: "Docker", Icon: SiDocker },
+  { name: "GitHub Actions", Icon: SiGithubactions },
+  { name: "Nginx", Icon: SiNginx },
+  { name: "Git", Icon: SiGit },
+  { name: "Linux", Icon: SiLinux },
+];
+
+const STACK_COLLAPSED_H = 124; // ~3 rows of logo chips
 
 /* ── token-derived accent tints (single source: --accent) ────────── */
 const accentTint = (pct: number) =>
@@ -180,6 +221,7 @@ export default function Portfolio() {
   const root = useRef<HTMLDivElement | null>(null);
   const [lightbox, setLightbox] = useState<{ image?: string; label: string } | null>(null);
   const lightboxCloseRef = useRef<HTMLButtonElement | null>(null);
+  const [stackExpanded, setStackExpanded] = useState(false);
 
   // Close the expanded panel on Escape; move focus into the dialog when it opens.
   useEffect(() => {
@@ -382,6 +424,43 @@ export default function Portfolio() {
                 <span style={{ color: "var(--accent)" }}>without waking anyone.</span>
               </p>
             </div>
+
+            {/* stack — brand logos under the headline, 3 rows by default, expandable */}
+            <div data-reveal="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(32px,5vh,52px)" }}>
+              <div style={{ ...monoLabel, marginBottom: 16 }}>// Stack</div>
+              <div style={{ position: "relative" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    gap: 10,
+                    maxHeight: stackExpanded ? 600 : STACK_COLLAPSED_H,
+                    overflow: "hidden",
+                    transition: "max-height 0.5s ease",
+                  }}
+                >
+                  {STACK.map(({ name, Icon }) => (
+                    <span key={name} className="stack-logo" style={{ display: "inline-flex", alignItems: "center", gap: 9, border: "1px solid var(--line)", padding: "9px 13px", fontFamily: "var(--mono)", fontSize: 12.5, color: "var(--ink)", background: "var(--bg)" }}>
+                      <Icon size={16} aria-hidden="true" /> {name}
+                    </span>
+                  ))}
+                </div>
+                {!stackExpanded && (
+                  <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 46, background: "linear-gradient(to bottom, transparent, var(--bg))", pointerEvents: "none" }} />
+                )}
+              </div>
+              <button
+                type="button"
+                className="stack-toggle"
+                onClick={() => setStackExpanded((v) => !v)}
+                aria-expanded={stackExpanded}
+                style={{ marginTop: 16, display: "inline-flex", alignItems: "center", gap: 8, border: "none", background: "none", cursor: "pointer", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--accent)", padding: 0 }}
+              >
+                {stackExpanded ? "Show less" : `Show all ${STACK.length}`}
+                <span aria-hidden="true">{stackExpanded ? "↑" : "↓"}</span>
+              </button>
+            </div>
+
             <p data-reveal="" className="about-aside" style={{ position: "relative", zIndex: 1, margin: "34px 0 0", marginLeft: "auto", maxWidth: "50ch", fontSize: 16, lineHeight: 1.7, color: "var(--muted)", textAlign: "right" }}>
               I&apos;m a fullstack developer who likes quiet focus and loud results — designing the database, wiring the API, polishing the last pixel. I judge my work by one thing: did it actually ship, and does it hold up.
             </p>

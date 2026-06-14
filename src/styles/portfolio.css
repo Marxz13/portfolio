@@ -105,6 +105,22 @@ html:has(.portfolio) {
   opacity: 1 !important;
 }
 
+/* Stack logo wall in the About section. */
+.portfolio .stack-logo {
+  transition: color 0.2s ease, border-color 0.2s ease;
+}
+.portfolio .stack-logo:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.portfolio .stack-toggle:hover {
+  text-decoration: underline;
+}
+.portfolio .stack-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
 /* Tokkae-style multi-panel preview: each panel expands into the lightbox. */
 .portfolio .work-panel {
   transition: border-color 0.2s ease;
