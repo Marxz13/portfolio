@@ -104,7 +104,6 @@ export const PROFILE: Profile = {
 export const NAV: NavLink[] = [
   { label: "about", href: "#about" },
   { label: "work", href: "#work" },
-  { label: "stack", href: "#skills" },
   { label: "contact", href: "#contact" },
 ];
 

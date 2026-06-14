@@ -13,53 +13,93 @@ import {
   NAV,
   MARQUEE,
   PROJECTS,
-  SKILLS,
   EXPERIENCE,
   EDUCATION,
 } from "./data/portfolio";
 
 import type { IconType } from "react-icons";
 import {
-  SiTypescript, SiJavascript, SiPython, SiGo, SiGnubash,
-  SiReact, SiNextdotjs, SiExpo, SiTailwindcss, SiVite,
-  SiNodedotjs, SiFastapi, SiFlask, SiCelery, SiApachekafka,
-  SiPostgresql, SiMongodb, SiRedis, SiSqlite,
-  SiDocker, SiGithubactions, SiNginx, SiGit, SiLinux,
+  SiTypescript, SiJavascript, SiPython, SiGo, SiCplusplus, SiKotlin, SiGnubash, SiHtml5, SiCss,
+  SiReact, SiNextdotjs, SiExpo, SiTailwindcss, SiShadcnui, SiFlutter, SiVite,
+  SiNodedotjs, SiFastapi, SiFlask, SiCelery, SiApachekafka, SiSocketdotio,
+  SiPostgresql, SiMongodb, SiRedis, SiSqlite, SiFirebase, SiSupabase,
+  SiDigitalocean, SiDocker, SiGithubactions, SiNginx, SiLinux,
+  SiGit, SiPytest, SiJest, SiPostman, SiSwagger, SiStripe, SiN8N, SiOpenai, SiTauri,
 } from "react-icons/si";
 import { FaAws } from "react-icons/fa";
 
 gsap.registerPlugin(ScrollTrigger);
 
-/* Tech stack shown as a logo wall in the About section. */
-const STACK: { name: string; Icon: IconType }[] = [
+type StackItem = { name: string; Icon: IconType };
+
+/* Tech stack shown as animated logo marquees in the About section. */
+const STACK: StackItem[] = [
   { name: "TypeScript", Icon: SiTypescript },
   { name: "JavaScript", Icon: SiJavascript },
   { name: "Python", Icon: SiPython },
   { name: "Go", Icon: SiGo },
+  { name: "C++", Icon: SiCplusplus },
+  { name: "Kotlin", Icon: SiKotlin },
   { name: "Bash", Icon: SiGnubash },
+  { name: "HTML5", Icon: SiHtml5 },
+  { name: "CSS", Icon: SiCss },
   { name: "React", Icon: SiReact },
   { name: "Next.js", Icon: SiNextdotjs },
   { name: "Expo", Icon: SiExpo },
   { name: "Tailwind", Icon: SiTailwindcss },
+  { name: "shadcn/ui", Icon: SiShadcnui },
+  { name: "Flutter", Icon: SiFlutter },
   { name: "Vite", Icon: SiVite },
   { name: "Node.js", Icon: SiNodedotjs },
   { name: "FastAPI", Icon: SiFastapi },
   { name: "Flask", Icon: SiFlask },
   { name: "Celery", Icon: SiCelery },
   { name: "Kafka", Icon: SiApachekafka },
+  { name: "Socket.io", Icon: SiSocketdotio },
   { name: "PostgreSQL", Icon: SiPostgresql },
   { name: "MongoDB", Icon: SiMongodb },
   { name: "Redis", Icon: SiRedis },
   { name: "SQLite", Icon: SiSqlite },
+  { name: "Firebase", Icon: SiFirebase },
+  { name: "Supabase", Icon: SiSupabase },
   { name: "AWS", Icon: FaAws },
+  { name: "DigitalOcean", Icon: SiDigitalocean },
   { name: "Docker", Icon: SiDocker },
   { name: "GitHub Actions", Icon: SiGithubactions },
   { name: "Nginx", Icon: SiNginx },
-  { name: "Git", Icon: SiGit },
   { name: "Linux", Icon: SiLinux },
+  { name: "Git", Icon: SiGit },
+  { name: "PyTest", Icon: SiPytest },
+  { name: "Jest", Icon: SiJest },
+  { name: "Postman", Icon: SiPostman },
+  { name: "Swagger", Icon: SiSwagger },
+  { name: "Stripe", Icon: SiStripe },
+  { name: "n8n", Icon: SiN8N },
+  { name: "OpenAI", Icon: SiOpenai },
+  { name: "Tauri", Icon: SiTauri },
 ];
 
-const STACK_COLLAPSED_H = 124; // ~3 rows of logo chips
+// split into 3 rows (interleaved so each row is a varied mix)
+const STACK_ROWS = [0, 1, 2].map((r) => STACK.filter((_, i) => i % 3 === r));
+
+const LogoChips = ({ items, dup }: { items: StackItem[]; dup?: boolean }) => (
+  <div className={dup ? "logo-seq logo-dup" : "logo-seq"} aria-hidden={dup || undefined}>
+    {items.map(({ name, Icon }) => (
+      <span key={name} className="stack-logo">
+        <Icon size={16} aria-hidden="true" /> {name}
+      </span>
+    ))}
+  </div>
+);
+
+const LogoMarquee = ({ items, reverse, duration }: { items: StackItem[]; reverse?: boolean; duration: number }) => (
+  <div className="logo-marquee">
+    <div className="logo-track" data-marquee-track="" style={{ animationDuration: `${duration}s`, animationDirection: reverse ? "reverse" : "normal" }}>
+      <LogoChips items={items} />
+      <LogoChips items={items} dup />
+    </div>
+  </div>
+);
 
 /* ── token-derived accent tints (single source: --accent) ────────── */
 const accentTint = (pct: number) =>
@@ -136,11 +176,25 @@ const btnGhost: CSSProperties = {
   padding: "15px 24px",
 };
 
+// Distinct accent-filled CTA used for the résumé download.
+const btnAccent: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 10,
+  background: "var(--accent)",
+  color: "var(--bg)",
+  textDecoration: "none",
+  fontFamily: "var(--mono)",
+  fontSize: 13,
+  fontWeight: 700,
+  letterSpacing: "0.04em",
+  padding: "16px 26px",
+};
+
 const Square = ({ size = 7, color = "var(--accent)" }: { size?: number; color?: string }) => (
   <span style={{ width: size, height: size, background: color, flex: "none", display: "inline-block" }} />
 );
 
-const SKILL_OFFSETS = ["0px", "clamp(0px,3vw,40px)", "clamp(0px,6vw,80px)", "clamp(0px,9vw,120px)"];
 
 /* ── Work-card hover: slide the hovered card to the row's center and lift
    it forward — like pulling a folder out of a cabinet. Driven with GSAP so
@@ -221,7 +275,6 @@ export default function Portfolio() {
   const root = useRef<HTMLDivElement | null>(null);
   const [lightbox, setLightbox] = useState<{ image?: string; label: string } | null>(null);
   const lightboxCloseRef = useRef<HTMLButtonElement | null>(null);
-  const [stackExpanded, setStackExpanded] = useState(false);
 
   // Close the expanded panel on Escape; move focus into the dialog when it opens.
   useEffect(() => {
@@ -256,6 +309,7 @@ export default function Portfolio() {
         .from("[data-hero-statement]", { opacity: 0, y: 24, duration: 0.7 }, "-=0.45")
         .from("[data-hero-text]", { opacity: 0, y: 18, duration: 0.7 }, "-=0.45")
         .from("[data-hero-meta] > *", { opacity: 0, y: 14, duration: 0.6, stagger: 0.09 }, "-=0.45")
+        .from("[data-hero-shout]", { opacity: 0, y: 22, duration: 0.7 }, "-=0.3")
         .from("[data-hero-frame]", { opacity: 0, x: -20, duration: 0.9, ease: "power2.out" }, 0.12);
 
       // safety: snap to end if the timeline never advances (throttled tab)
@@ -397,16 +451,23 @@ export default function Portfolio() {
                 <a href="#work" className="btn-dark" style={{ ...btnDark, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "15px 24px" }}>
                   View work <span aria-hidden="true">&#9632;</span>
                 </a>
-                <a href={PROFILE.cv} download className="btn-ghost" style={{ ...btnGhost, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "14px 22px" }}>
+                <a href={PROFILE.cv} download className="btn-accent" style={{ ...btnAccent, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "15px 24px" }}>
                   Download CV
                 </a>
                 <span style={{ display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 14, borderLeft: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)" }}>
-                  {PROFILE.contributions.toLocaleString()} commits
+                  Active on
                   <br />
-                  <span style={{ color: "var(--ink)" }}>this year</span>
+                  <span style={{ color: "var(--ink)" }}>GitHub</span>
                 </span>
               </div>
             </div>
+          </div>
+
+          {/* hero bottom — animated shout */}
+          <div data-hero-shout="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(24px,4vh,52px)" }}>
+            <span className="hero-shout" style={{ display: "inline-block", fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(1.3rem,3.6vw,2.8rem)", letterSpacing: "0.02em", lineHeight: 1, color: "var(--ink)" }}>
+              AHHHHHHHHHHHHHH I WANT <span style={{ color: "var(--accent)" }}>PROBLEM!!</span>
+            </span>
           </div>
         </header>
 
@@ -425,40 +486,27 @@ export default function Portfolio() {
               </p>
             </div>
 
-            {/* stack — brand logos under the headline, 3 rows by default, expandable */}
+            {/* stack — endless logo marquees, alternating direction per row */}
             <div data-reveal="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(32px,5vh,52px)" }}>
               <div style={{ ...monoLabel, marginBottom: 16 }}>// Stack</div>
-              <div style={{ position: "relative" }}>
-                <div
-                  style={{
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 10,
-                    maxHeight: stackExpanded ? 600 : STACK_COLLAPSED_H,
-                    overflow: "hidden",
-                    transition: "max-height 0.5s ease",
-                  }}
-                >
-                  {STACK.map(({ name, Icon }) => (
-                    <span key={name} className="stack-logo" style={{ display: "inline-flex", alignItems: "center", gap: 9, border: "1px solid var(--line)", padding: "9px 13px", fontFamily: "var(--mono)", fontSize: 12.5, color: "var(--ink)", background: "var(--bg)" }}>
-                      <Icon size={16} aria-hidden="true" /> {name}
-                    </span>
-                  ))}
+              {STACK_ROWS.map((row, i) => (
+                <LogoMarquee key={i} items={row} reverse={i % 2 === 1} duration={[34, 28, 38][i]} />
+              ))}
+            </div>
+
+            {/* education */}
+            <div data-reveal="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(30px,4.5vh,48px)" }}>
+              <div style={{ ...monoLabel, marginBottom: 12 }}>// Education</div>
+              {EDUCATION.map((ed) => (
+                <div key={ed.school} style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "4px 14px" }}>
+                  <span style={{ fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.1rem,1.7vw,1.4rem)" }}>{ed.school}</span>
+                  <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>{ed.period}</span>
+                  <div style={{ flexBasis: "100%", fontSize: 15, lineHeight: 1.6, color: "var(--muted)", marginTop: 3 }}>
+                    {ed.detail}
+                    {ed.location ? ` · ${ed.location}` : ""}
+                  </div>
                 </div>
-                {!stackExpanded && (
-                  <div aria-hidden="true" style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 46, background: "linear-gradient(to bottom, transparent, var(--bg))", pointerEvents: "none" }} />
-                )}
-              </div>
-              <button
-                type="button"
-                className="stack-toggle"
-                onClick={() => setStackExpanded((v) => !v)}
-                aria-expanded={stackExpanded}
-                style={{ marginTop: 16, display: "inline-flex", alignItems: "center", gap: 8, border: "none", background: "none", cursor: "pointer", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--accent)", padding: 0 }}
-              >
-                {stackExpanded ? "Show less" : `Show all ${STACK.length}`}
-                <span aria-hidden="true">{stackExpanded ? "↑" : "↓"}</span>
-              </button>
+              ))}
             </div>
 
             <p data-reveal="" className="about-aside" style={{ position: "relative", zIndex: 1, margin: "34px 0 0", marginLeft: "auto", maxWidth: "50ch", fontSize: 16, lineHeight: 1.7, color: "var(--muted)", textAlign: "right" }}>
@@ -630,34 +678,10 @@ export default function Portfolio() {
           </div>
         </section>
 
-        {/* ── SKILLS ──────────────────────────────────────────── */}
-        <section id="skills" data-screen-label="Skills" style={{ position: "relative", overflow: "hidden", borderTop: "1px solid var(--ink)" }}>
-          <div style={container}>
-            <span className="section-num" style={{ ...watermark, top: "clamp(-20px,-1vw,10px)", right: "clamp(-20px,-1vw,0px)", color: accentTint(7) }}>03</span>
-            <h2 data-reveal="" style={{ ...sectionTitle, position: "relative", zIndex: 1, marginBottom: "clamp(34px,6vh,60px)" }}>The Stack</h2>
-            <div style={{ position: "relative", zIndex: 1, display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: "clamp(24px,4vw,48px)", alignItems: "start" }}>
-              {SKILLS.map((group, i) => (
-                <div key={group.label} data-reveal="" className="stack-col" style={{ marginTop: SKILL_OFFSETS[i] ?? 0 }}>
-                  <div style={{ fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--ink)", paddingBottom: 14, borderBottom: "2px solid var(--accent)", marginBottom: 18 }}>
-                    {group.label}
-                  </div>
-                  <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 13, fontSize: 16 }}>
-                    {group.items.map((item) => (
-                      <li key={item} style={{ display: "flex", alignItems: "center", gap: 11 }}>
-                        <Square /> {item}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         {/* ── EXPERIENCE ──────────────────────────────────────── */}
         <section id="experience" data-screen-label="Experience" style={{ position: "relative", overflow: "hidden", background: "var(--bg-2)", borderTop: "1px solid var(--ink)" }}>
           <div style={container}>
-            <span className="section-num" style={{ ...watermark, bottom: "clamp(-30px,-3vw,-10px)", left: "clamp(-20px,-1vw,0px)", color: "rgba(11,11,12,0.05)" }}>04</span>
+            <span className="section-num" style={{ ...watermark, bottom: "clamp(-30px,-3vw,-10px)", left: "clamp(-20px,-1vw,0px)", color: "rgba(11,11,12,0.05)" }}>03</span>
             <h2 data-reveal="" style={{ ...sectionTitle, position: "relative", zIndex: 1, marginBottom: "clamp(34px,6vh,60px)" }}>Experience</h2>
 
             {EXPERIENCE.map((e, i) => (
@@ -690,38 +714,6 @@ export default function Portfolio() {
               </div>
             ))}
 
-            {/* education */}
-            <div data-reveal="" style={{ ...monoLabel, position: "relative", zIndex: 1, marginTop: "clamp(36px,6vh,60px)", marginBottom: 18 }}>// Education</div>
-            {EDUCATION.map((ed) => (
-              <div
-                key={ed.school}
-                data-reveal=""
-                className="exp-row"
-                style={{
-                  position: "relative",
-                  zIndex: 1,
-                  display: "grid",
-                  gridTemplateColumns: "150px 1fr",
-                  gap: "clamp(14px,3vw,40px)",
-                  padding: "26px clamp(20px,3vw,36px)",
-                  border: "1px solid var(--ink)",
-                  background: "var(--bg)",
-                  width: "min(100%,720px)",
-                  marginRight: "auto",
-                }}
-              >
-                <span style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)" }}>
-                  {ed.period}
-                </span>
-                <div>
-                  <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.3rem,2.1vw,1.7rem)" }}>{ed.school}</h3>
-                  <p style={{ margin: "9px 0 0", maxWidth: "54ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
-                    {ed.detail}
-                    {ed.location ? ` · ${ed.location}` : ""}
-                  </p>
-                </div>
-              </div>
-            ))}
           </div>
         </section>
 
@@ -729,7 +721,7 @@ export default function Portfolio() {
         <section id="contact" data-screen-label="Contact" style={{ position: "relative", overflow: "hidden", borderTop: "1px solid var(--ink)" }}>
           <div style={{ ...container, paddingBottom: "clamp(48px,8vh,90px)" }}>
             <div data-reveal="" style={{ display: "flex", alignItems: "center", gap: 12, ...monoLabel, marginBottom: 8 }}>
-              <Square /> 05 / Contact
+              <Square /> 04 / Contact
             </div>
             <h2 data-reveal="" style={{ position: "relative", margin: 0, lineHeight: 0.84 }}>
               <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3.2rem,12vw,9rem)", color: accentTint(22), transform: "translate(10px,10px)", letterSpacing: "0.01em" }}>
@@ -754,7 +746,7 @@ export default function Portfolio() {
               <a href={PROFILE.linkedin} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={btnGhost} aria-label="LinkedIn profile (opens in a new tab)">
                 linkedin
               </a>
-              <a href={PROFILE.cv} download className="btn-ghost" style={btnGhost}>
+              <a href={PROFILE.cv} download className="btn-accent" style={btnAccent}>
                 download cv
               </a>
             </div>
@@ -763,12 +755,9 @@ export default function Portfolio() {
             <div data-reveal="" style={{ position: "relative", zIndex: 2, marginTop: "clamp(48px,8vh,90px)", border: "1px solid var(--ink)", background: "var(--bg)", padding: "clamp(22px,4vw,38px)", boxShadow: `10px 10px 0 ${accentTint(14)}` }}>
               <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 24 }}>
                 <div>
-                  <div style={{ ...monoLabel, letterSpacing: "0.06em", marginBottom: 6 }}>This year on GitHub</div>
-                  <div style={{ fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(2.6rem,6vw,4rem)", lineHeight: 0.9 }}>
-                    {PROFILE.contributions.toLocaleString()}{" "}
-                    <span style={{ fontFamily: "var(--sans)", fontWeight: 500, fontSize: "0.32em", color: "var(--muted)", letterSpacing: 0 }}>
-                      contributions
-                    </span>
+                  <div style={{ ...monoLabel, letterSpacing: "0.06em", marginBottom: 8 }}>This year on GitHub</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)", maxWidth: "44ch", lineHeight: 1.5 }}>
+                    A steady year of commits — public &amp; private.
                   </div>
                 </div>
                 <a href={PROFILE.github} target="_blank" rel="noopener noreferrer" style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--accent)", textDecoration: "none" }} aria-label={`Open github.com/${PROFILE.githubHandle.replace("@", "")} (opens in a new tab)`}>
