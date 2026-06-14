@@ -15,6 +15,7 @@ import {
   PROJECTS,
   SKILLS,
   EXPERIENCE,
+  EDUCATION,
 } from "./data/portfolio";
 
 gsap.registerPlugin(ScrollTrigger);
@@ -601,6 +602,39 @@ export default function Portfolio() {
                 <div>
                   <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.3rem,2.1vw,1.7rem)" }}>{e.role}</h3>
                   <p style={{ margin: "9px 0 0", maxWidth: "54ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>{e.blurb}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* education */}
+            <div data-reveal="" style={{ ...monoLabel, position: "relative", zIndex: 1, marginTop: "clamp(36px,6vh,60px)", marginBottom: 18 }}>// Education</div>
+            {EDUCATION.map((ed) => (
+              <div
+                key={ed.school}
+                data-reveal=""
+                className="exp-row"
+                style={{
+                  position: "relative",
+                  zIndex: 1,
+                  display: "grid",
+                  gridTemplateColumns: "150px 1fr",
+                  gap: "clamp(14px,3vw,40px)",
+                  padding: "26px clamp(20px,3vw,36px)",
+                  border: "1px solid var(--ink)",
+                  background: "var(--bg)",
+                  width: "min(100%,720px)",
+                  marginRight: "auto",
+                }}
+              >
+                <span style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)" }}>
+                  {ed.period}
+                </span>
+                <div>
+                  <h3 style={{ margin: 0, fontFamily: "var(--sans)", fontWeight: 600, fontSize: "clamp(1.3rem,2.1vw,1.7rem)" }}>{ed.school}</h3>
+                  <p style={{ margin: "9px 0 0", maxWidth: "54ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
+                    {ed.detail}
+                    {ed.location ? ` · ${ed.location}` : ""}
+                  </p>
                 </div>
               </div>
             ))}

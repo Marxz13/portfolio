@@ -68,6 +68,13 @@ export interface ExperienceEntry {
   current?: boolean;
 }
 
+export interface EducationEntry {
+  period: string;
+  school: string;
+  detail: string;
+  location?: string;
+}
+
 export const PROFILE: Profile = {
   name: "MARZ",
   fullName: "Mar Zallan Ismail",
@@ -194,5 +201,14 @@ export const EXPERIENCE: ExperienceEntry[] = [
     role: "Full-Stack Developer · Fuji Elevator",
     blurb:
       "Architected a 32-page enterprise ERP for elevator operations: a React 18 + TypeScript front end with role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
+  },
+];
+
+export const EDUCATION: EducationEntry[] = [
+  {
+    period: "2022 — 2025",
+    school: "University of Nottingham Malaysia",
+    detail: "B.Sc. Computer Science — Second Class Honours, Upper Division (2:1)",
+    location: "Semenyih, MY",
   },
 ];
