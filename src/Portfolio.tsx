@@ -128,7 +128,16 @@ const prefersReduced = () =>
    while only the inner ".work-mover" slides — so a card pulled to center can't
    slip out from under the cursor and flicker. A full-page dim overlay fades in
    to focus the active card; cards that carry a screenshot slide further left
-   once centered and reveal it on the right. Works for pointer + keyboard. */
+   once centered and reveal it on the right. Works for pointer + keyboard.
+
+   `slotTimelines` tracks each slot's active timeline so a re-hover can kill a
+   still-running release (and cancel its z-index reset). `hoverZ` is a monotonic
+   counter so the newest hover always sits above a card still animating back —
+   otherwise two cards momentarily share z-index 50 and DOM order wins, leaving
+   the card you just moved to stuck behind the previous one. */
+const slotTimelines = new WeakMap<HTMLElement, gsap.core.Timeline>();
+let hoverZ = 50;
+
 const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
   if (prefersReduced()) return;
   const slot = e.currentTarget;
@@ -139,9 +148,10 @@ const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
   const showShot = !!shot && window.innerWidth >= SHOT_MIN_VW;
   const dxCenter = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
 
-  gsap.set(slot, { zIndex: 50 });
+  slotTimelines.get(slot)?.kill();
+  hoverZ += 1;
+  gsap.set(slot, { zIndex: hoverZ });
   gsap.to("[data-work-dim]", { opacity: 1, duration: 0.4, ease: "power2.out", overwrite: "auto" });
-  gsap.killTweensOf(shot ? [mover, shot] : [mover]);
 
   const tl = gsap.timeline();
   tl.to(mover, { x: dxCenter, y: -12, scale: 1.04, boxShadow: CARD_SHADOW_HOVER, duration: 0.45, ease: "power3.out" });
@@ -151,6 +161,7 @@ const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
       .fromTo(shot, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "<")
       .set(shot, { pointerEvents: "auto" });
   }
+  slotTimelines.set(slot, tl);
 };
 
 const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
@@ -160,8 +171,8 @@ const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
   if (!mover) return;
   const shot = slot.querySelector<HTMLElement>(".work-shot");
 
+  slotTimelines.get(slot)?.kill();
   gsap.to("[data-work-dim]", { opacity: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
-  gsap.killTweensOf(shot ? [mover, shot] : [mover]);
 
   const tl = gsap.timeline({ onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }) });
   if (shot) {
@@ -169,6 +180,7 @@ const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
     tl.to(shot, { opacity: 0, x: -16, duration: 0.3, ease: "power2.out" }, 0);
   }
   tl.to(mover, { x: 0, y: 0, scale: 1, boxShadow: CARD_SHADOW_REST, duration: 0.4, ease: "power3.out" }, 0);
+  slotTimelines.set(slot, tl);
 };
 
 export default function Portfolio() {
