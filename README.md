@@ -1,4 +1,32 @@
-# Handoff: Marz — Developer Portfolio (TSX)
+# Marz — Developer Portfolio (TSX)
+
+> A single-page, pixelated Swiss-grid portfolio. Built with **Vite + React 18 + TypeScript + GSAP**.
+
+## Quick start
+
+```bash
+npm install
+npm run dev        # start the dev server (opens the browser)
+npm run build      # type-check (tsc -b) + production build to dist/
+npm run preview    # serve the production build locally
+npm run lint       # ESLint (flat config)
+```
+
+Requires Node 20.19+ or 22.12+. The app entry is `src/main.tsx` → `src/App.tsx` → `src/Portfolio.tsx`.
+All content lives in **`src/data/portfolio.ts`** — edit that to change copy, projects, skills, etc.
+
+Fonts (Pixelify Sans / Space Grotesk / Space Mono) are loaded via `<link>` in `index.html`
+(moved out of the CSS `@import` for performance). The design tokens and keyframes live in
+`src/styles/portfolio.css`, scoped under the `.portfolio` root class.
+
+> **Security note:** `npm audit` reports a high-severity advisory in `esbuild` (pulled in
+> transitively by `vite`). It affects the dev/build toolchain only — not the shipped static
+> bundle — and the only published fix is a breaking Vite major. Left on Vite 6 intentionally;
+> revisit when Vite ships a patch on the current major.
+
+---
+
+# Handoff notes (original design brief)
 
 ## Overview
 A single-page personal portfolio for **Marz**, a 24-year-old fullstack developer. Clean, technical, Swiss-grid aesthetic built around a **"pixelated" brand**: a pixel display typeface, a faint pixel-grid background, sharp 90° corners, and a hero portrait that **de-pixelates on load** (and re-shimmers on hover). The layout is intentionally **layered/overlapping** — the giant wordmark crosses the portrait, oversized section numerals bleed off the edges, and the Work cards stack in a diagonal offset.

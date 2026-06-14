@@ -84,7 +84,15 @@ html:has(.portfolio) {
 .portfolio .work-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
 .portfolio .work-card:hover {
   transform: translate(-4px, -4px);
-  box-shadow: 14px 14px 0 rgba(31, 70, 255, 0.16);
+  box-shadow: 14px 14px 0 color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* Disabled placeholder buttons must not react to the ghost hover fill. */
+.portfolio .btn-ghost:disabled,
+.portfolio .btn-ghost:disabled:hover {
+  background: none;
+  color: var(--ink);
+  cursor: not-allowed;
 }
 
 .portfolio a:focus-visible,
@@ -92,4 +100,100 @@ html:has(.portfolio) {
 .portfolio .btn-ghost:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
+}
+
+/* ── reveal safety net ───────────────────────────────────────────
+   GSAP's gsap.from() sets inline opacity:0 while it runs (overriding
+   this), so the animation still plays. This rule only takes effect when
+   the tween never runs — JS disabled, reduced-motion (we skip GSAP),
+   or a ScrollTrigger that never fired — guaranteeing content stays
+   perceivable. */
+.portfolio [data-reveal] {
+  opacity: 1;
+}
+
+/* ── skip link (Bypass Blocks, WCAG 2.4.1) ───────────────────────
+   Off-screen until focused, then slides in over the sticky nav. */
+.portfolio .skip-link {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 100;
+  padding: 10px 16px;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 13px;
+  text-decoration: none;
+  transform: translateY(-160%);
+  transition: transform 0.16s ease;
+}
+.portfolio .skip-link:focus {
+  transform: translateY(0);
+}
+
+/* ── responsive: collapse the overlapping desktop layout ──────────
+   The design is desktop-first; these single-breakpoint overrides give a
+   clean phone/tablet layout by undoing the overlaps (negative margins,
+   staggers, two-column grids) below ~768px. Inline styles win over the
+   stylesheet, so these overrides use !important. */
+@media (max-width: 768px) {
+  /* hero: one column, portrait above intro, no forced min-height */
+  .portfolio .hero-grid {
+    grid-template-columns: 1fr !important;
+    gap: 28px !important;
+    min-height: 0 !important;
+  }
+  /* the wordmark's leftward pull overflows a narrow viewport */
+  .portfolio .hero-wordmark {
+    margin-left: 0 !important;
+  }
+  /* work cards: drop the diagonal overlap and stack cleanly */
+  .portfolio .work-card {
+    align-self: stretch !important;
+    width: 100% !important;
+    margin-top: 0 !important;
+  }
+  .portfolio .work-card + .work-card {
+    margin-top: 28px !important;
+  }
+  /* stack: remove the vertical stagger */
+  .portfolio .stack-col {
+    margin-top: 0 !important;
+  }
+  /* experience: stack period above role, single column, full width */
+  .portfolio .exp-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+  /* about: full-width copy, no right alignment */
+  .portfolio .about-lede {
+    max-width: 100% !important;
+  }
+  .portfolio .about-aside {
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    text-align: left !important;
+  }
+  /* tame the bleeding watermark numerals */
+  .portfolio .section-num {
+    font-size: clamp(5rem, 20vw, 10rem) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .portfolio .nav-links {
+    gap: 14px !important;
+  }
+  /* the "available" status is the least essential nav item when space is tight */
+  .portfolio .nav-available {
+    display: none !important;
+  }
+  /* watermark numerals become noise at phone widths */
+  .portfolio .section-num {
+    display: none !important;
+  }
 }

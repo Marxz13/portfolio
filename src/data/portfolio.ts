@@ -31,7 +31,6 @@ export interface Project {
   name: string;
   description: string;
   tech: string[];
-  year: string;
   href: string;
 }
 
@@ -84,7 +83,6 @@ export const PROJECTS: Project[] = [
     description:
       "A realtime analytics platform — event pipeline, query engine, and dashboards used across the org.",
     tech: ["Next.js", "tRPC", "PostgreSQL", "Redis"],
-    year: "2025",
     href: "#",
   },
   {
@@ -93,7 +91,6 @@ export const PROJECTS: Project[] = [
     description:
       "Collaborative design-to-code tooling with live multiplayer editing and an instant preview engine.",
     tech: ["React", "Node.js", "WebSockets", "Docker"],
-    year: "2024",
     href: "#",
   },
   {
@@ -102,7 +99,6 @@ export const PROJECTS: Project[] = [
     description:
       "A minimalist personal finance tracker — local-first, encrypted, and fast enough to feel native.",
     tech: ["SvelteKit", "Go", "SQLite"],
-    year: "2024",
     href: "#",
   },
 ];

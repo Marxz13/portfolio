@@ -18,7 +18,7 @@ const LEVEL_COLORS = [
   "rgba(11,11,12,0.20)",
   "rgba(11,11,12,0.40)",
   "rgba(11,11,12,0.66)",
-  "#1F46FF",
+  "var(--accent)",
 ];
 
 function levelsFor(count: number, seed: number): number[] {
@@ -44,7 +44,9 @@ export default function ContributionGraph({
   const levels = useMemo(() => levelsFor(count, seed), [count, seed]);
 
   return (
-    <div style={{ overflow: "hidden" }}>
+    // Horizontally scrollable so the full deterministic year is reachable on
+    // narrow screens instead of being silently clipped.
+    <div style={{ overflowX: "auto", overflowY: "hidden", WebkitOverflowScrolling: "touch" }}>
       <div
         style={{
           display: "grid",

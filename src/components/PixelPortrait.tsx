@@ -15,9 +15,15 @@ import gsap from "gsap";
  *
  * No pixel data is read (no getImageData), so cross-origin images are fine
  * for display; the canvas is never exported.
+ *
+ * Accessibility: the canvas is exposed as role="img" with `label` as its
+ * accessible name. Honors `prefers-reduced-motion` by painting sharp with
+ * no animation and disabling the hover shimmer.
  */
 export interface PixelPortraitProps {
   src: string;
+  /** Accessible name for the portrait (becomes the canvas's aria-label). */
+  label?: string;
   /** Largest pixelation step count for the load reveal. */
   steps?: number;
   className?: string;
@@ -25,9 +31,16 @@ export interface PixelPortraitProps {
 }
 
 const MIN_DETAIL = 0.04;
+const MAX_DPR = 2;
+
+const prefersReducedMotion = () =>
+  typeof window !== "undefined" &&
+  typeof window.matchMedia === "function" &&
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 export default function PixelPortrait({
   src,
+  label,
   steps = 9,
   className,
   style,
@@ -36,6 +49,8 @@ export default function PixelPortrait({
   const imgRef = useRef<HTMLImageElement | null>(null);
   const tmpRef = useRef<HTMLCanvasElement | null>(null);
   const shimmering = useRef(false);
+  /** Hover-shimmer trigger, wired up by the effect (typed, no DOM stashing). */
+  const shimmerFn = useRef<(() => void) | null>(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -47,11 +62,25 @@ export default function PixelPortrait({
     const tctx = tmp.getContext("2d")!;
     tmpRef.current = tmp;
 
+    // Effect-local lifecycle state.
+    let alive = true;
+    let loadTween: gsap.core.Tween | undefined;
+    let shimmerTween: gsap.core.Tween | undefined;
+    let safety: number | undefined;
+    // Cache the last downscale size so we don't reallocate the offscreen
+    // backing store on every animation frame (the stepped tween fires
+    // ~60fps but only ~`steps` distinct resolutions actually render).
+    let lastSw = -1;
+    let lastSh = -1;
+
     const sizeCanvas = () => {
       const r = canvas.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       canvas.width = Math.max(2, Math.round(r.width * dpr));
       canvas.height = Math.max(2, Math.round(r.height * dpr));
+      // A new backing store invalidates the cached downscale dimensions.
+      lastSw = -1;
+      lastSh = -1;
     };
 
     const drawCover = (
@@ -86,6 +115,10 @@ export default function PixelPortrait({
       const d = Math.max(0.012, Math.min(1, detail));
       const sw = Math.max(2, Math.round(W * d));
       const sh = Math.max(2, Math.round(H * d));
+      // Identical resolution → identical output; skip the redundant work.
+      if (sw === lastSw && sh === lastSh) return;
+      lastSw = sw;
+      lastSh = sh;
       tmp.width = sw;
       tmp.height = sh;
       tctx.imageSmoothingEnabled = true;
@@ -103,16 +136,20 @@ export default function PixelPortrait({
     };
     window.addEventListener("resize", onResize);
 
-    let safety: number | undefined;
-    const ctxAnim = gsap.context(() => {});
+    const reduce = prefersReducedMotion();
 
     const img = new Image();
     img.crossOrigin = "anonymous";
     img.onload = () => {
+      if (!alive) return;
       imgRef.current = img;
+      if (reduce) {
+        drawFace(1); // sharp, no animation
+        return;
+      }
       drawFace(MIN_DETAIL); // immediate paint, never blank
       const obj = { d: MIN_DETAIL };
-      gsap.to(obj, {
+      loadTween = gsap.to(obj, {
         d: 1,
         duration: 1.9,
         ease: `steps(${steps})`,
@@ -124,32 +161,40 @@ export default function PixelPortrait({
     };
     img.src = src;
 
-    // expose the shimmer to the hover handler below
-    (canvas as any).__shimmer = () => {
-      if (shimmering.current || !imgRef.current) return;
-      shimmering.current = true;
-      const obj = { d: 0.09 };
-      gsap.to(obj, {
-        d: 1,
-        duration: 0.9,
-        ease: "steps(7)",
-        onUpdate: () => drawFace(obj.d),
-        onComplete: () => {
-          shimmering.current = false;
-        },
-      });
-    };
+    // Hover shimmer — only when motion is allowed.
+    if (!reduce) {
+      shimmerFn.current = () => {
+        if (shimmering.current || !imgRef.current) return;
+        shimmering.current = true;
+        const obj = { d: 0.09 };
+        shimmerTween = gsap.to(obj, {
+          d: 1,
+          duration: 0.9,
+          ease: "steps(7)",
+          onUpdate: () => drawFace(obj.d),
+          onComplete: () => {
+            shimmering.current = false;
+          },
+        });
+      };
+    }
 
     return () => {
+      alive = false;
       window.removeEventListener("resize", onResize);
       if (safety) clearTimeout(safety);
-      ctxAnim.revert();
+      // Abort an in-flight decode whose onload would otherwise fire after
+      // teardown (e.g. React StrictMode's mount→unmount→mount in dev).
+      img.onload = null;
+      img.src = "";
+      loadTween?.kill();
+      shimmerTween?.kill();
+      shimmerFn.current = null;
     };
   }, [src, steps]);
 
   const handleEnter = () => {
-    const c = canvasRef.current as (HTMLCanvasElement & { __shimmer?: () => void }) | null;
-    c?.__shimmer?.();
+    shimmerFn.current?.();
   };
 
   return (
@@ -167,6 +212,8 @@ export default function PixelPortrait({
     >
       <canvas
         ref={canvasRef}
+        role="img"
+        aria-label={label}
         data-pixel-portrait=""
         style={{
           position: "absolute",
@@ -176,7 +223,9 @@ export default function PixelPortrait({
           display: "block",
           filter: "grayscale(1) contrast(1.06)",
         }}
-      />
+      >
+        {label}
+      </canvas>
     </div>
   );
 }
