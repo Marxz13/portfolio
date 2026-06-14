@@ -298,8 +298,8 @@ export default function Portfolio() {
               {n.label}
             </a>
           ))}
-          <span className="nav-available" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--mono)", fontSize: 11, color: "var(--ink)" }}>
-            <Square size={8} /> available
+          <span className="nav-available" style={{ display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, color: "var(--bg)", background: "var(--accent)", padding: "5px 10px" }}>
+            <Square size={7} color="var(--bg)" /> {PROFILE.status}
           </span>
         </div>
       </nav>
@@ -327,8 +327,13 @@ export default function Portfolio() {
 
             {/* intro */}
             <div style={{ position: "relative", zIndex: 2 }}>
-              <div data-hero-eyebrow="" style={{ display: "flex", alignItems: "center", gap: 10, fontFamily: "var(--mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)", marginBottom: 14 }}>
-                <Square /> {PROFILE.role} / {PROFILE.age}
+              <div data-hero-eyebrow="" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 12, marginBottom: 14 }}>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 10, fontFamily: "var(--mono)", fontSize: 12, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--muted)" }}>
+                  <Square /> {PROFILE.role} / {PROFILE.age}
+                </span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase", color: "var(--bg)", background: "var(--accent)", padding: "5px 10px" }}>
+                  <Square size={7} color="var(--bg)" /> {PROFILE.status}
+                </span>
               </div>
               <h1 data-hero-title="" style={{ margin: 0, lineHeight: 0.82 }}>
                 <span className="hero-wordmark" style={{ display: "block", position: "relative", marginLeft: "clamp(-210px,-16vw,-70px)" }}>
@@ -656,7 +661,11 @@ export default function Portfolio() {
               </span>
             </h2>
 
-            <div data-reveal="" style={{ position: "relative", zIndex: 2, display: "flex", flexWrap: "wrap", gap: 12, marginTop: "clamp(28px,4vh,44px)" }}>
+            <p data-reveal="" style={{ position: "relative", zIndex: 2, margin: "clamp(20px,3vh,30px) 0 0", maxWidth: "54ch", fontFamily: "var(--sans)", fontWeight: 500, fontSize: "clamp(1.05rem,1.7vw,1.35rem)", lineHeight: 1.5 }}>
+              <span style={{ color: "var(--accent)", fontWeight: 700 }}>{PROFILE.status}.</span> {PROFILE.availability}
+            </p>
+
+            <div data-reveal="" style={{ position: "relative", zIndex: 2, display: "flex", flexWrap: "wrap", gap: 12, marginTop: "clamp(20px,3vh,28px)" }}>
               <a href={`mailto:${PROFILE.email}`} className="btn-dark" style={btnDark}>
                 {PROFILE.email} <span aria-hidden="true">&#9632;</span>
               </a>

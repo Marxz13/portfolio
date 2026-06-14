@@ -15,6 +15,10 @@ export interface Profile {
   githubHandle: string;
   linkedin: string;
   location: string;
+  /** Hiring status shown in the nav and hero, e.g. "Open to work". */
+  status: string;
+  /** One-line availability statement for the contact section. */
+  availability: string;
   /** Path to the résumé PDF (served from public/). */
   cv: string;
   /** Annual GitHub contribution count shown in the stats band. */
@@ -85,6 +89,9 @@ export const PROFILE: Profile = {
   githubHandle: "@Marxz13",
   linkedin: "https://linkedin.com/in/marzallan",
   location: "Kuala Lumpur, MY",
+  status: "Open to work",
+  availability:
+    "Full-time Full-Stack & Software Engineering roles — Kuala Lumpur or remote.",
   cv: "/Mar_Zallan_Resume.pdf",
   contributions: 6000,
   photo:
