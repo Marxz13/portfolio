@@ -126,6 +126,10 @@ export const PROJECTS: Project[] = [
       "A native, offline-first iPad point-of-sale for multi-vendor retail — F&B and retail under one org-level, multi-store dashboard, with BLE receipt printing and barcode scanning.",
     tech: ["React Native", "Expo", "SQLite", "Convex"],
     timeline: "2025 — EOY 2027",
+    panels: [
+      { label: "POS Terminal" },
+      { label: "Dashboard" },
+    ],
     href: "https://scalekh.com",
   },
   {
@@ -135,6 +139,9 @@ export const PROJECTS: Project[] = [
       "A Tauri + Rust desktop inventory system for F&B and retail — purchase orders, cycle counts, par-level reorder alerts, and recipe/BOM costing, synced offline-first to the Scale backend.",
     tech: ["Tauri", "Rust", "React", "TypeScript", "SQLite"],
     timeline: "2025 — EOY 2027",
+    panels: [
+      { label: "Desktop App" },
+    ],
     href: "https://scalekh.com",
   },
 ];
