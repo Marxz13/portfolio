@@ -116,45 +116,59 @@ const SKILL_OFFSETS = ["0px", "clamp(0px,4vw,52px)", "clamp(0px,8vw,104px)"];
    current transform, so it's robust mid-animation and across breakpoints). */
 const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
 const CARD_SHADOW_HOVER = "16px 16px 0 rgba(31,70,255,0.18)";
+const SHOT_W = 340; // screenshot preview width (px)
+const SHOT_GAP = 16; // gap between the card and its screenshot
+const SHOT_MIN_VW = 1200; // only reveal the side preview when there's room for it
 
-// The hover handlers live on the stationary "slot" wrapper (the hover zone
-// never moves), while only the inner .work-card slides — so a card pulled to
-// center can't slip out from under the cursor and flicker. Works for pointer
-// hover and keyboard focus alike.
+const prefersReduced = () =>
+  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ── Work-card hover ──────────────────────────────────────────────
+   Handlers live on the stationary ".work-slot" (the hover zone never moves),
+   while only the inner ".work-mover" slides — so a card pulled to center can't
+   slip out from under the cursor and flicker. A full-page dim overlay fades in
+   to focus the active card; cards that carry a screenshot slide further left
+   once centered and reveal it on the right. Works for pointer + keyboard. */
 const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (prefersReduced()) return;
   const slot = e.currentTarget;
   const container = slot.parentElement;
-  const card = slot.querySelector<HTMLElement>(".work-card");
-  if (!container || !card) return;
-  const dx = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
+  const mover = slot.querySelector<HTMLElement>(".work-mover");
+  if (!container || !mover) return;
+  const shot = slot.querySelector<HTMLElement>(".work-shot");
+  const showShot = !!shot && window.innerWidth >= SHOT_MIN_VW;
+  const dxCenter = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
+
   gsap.set(slot, { zIndex: 50 });
-  gsap.to(card, {
-    x: dx,
-    y: -12,
-    scale: 1.04,
-    boxShadow: CARD_SHADOW_HOVER,
-    duration: 0.5,
-    ease: "power3.out",
-    overwrite: "auto",
-  });
+  gsap.to("[data-work-dim]", { opacity: 1, duration: 0.4, ease: "power2.out", overwrite: "auto" });
+  gsap.killTweensOf(shot ? [mover, shot] : [mover]);
+
+  const tl = gsap.timeline();
+  tl.to(mover, { x: dxCenter, y: -12, scale: 1.04, boxShadow: CARD_SHADOW_HOVER, duration: 0.45, ease: "power3.out" });
+  if (showShot && shot) {
+    // once centered, slide left to make room and reveal the screenshot
+    tl.to(mover, { x: dxCenter - (SHOT_W + SHOT_GAP) / 2, duration: 0.45, ease: "power3.out" })
+      .fromTo(shot, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "<")
+      .set(shot, { pointerEvents: "auto" });
+  }
 };
 
 const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (prefersReduced()) return;
   const slot = e.currentTarget;
-  const card = slot.querySelector<HTMLElement>(".work-card");
-  if (!card) return;
-  gsap.to(card, {
-    x: 0,
-    y: 0,
-    scale: 1,
-    boxShadow: CARD_SHADOW_REST,
-    duration: 0.45,
-    ease: "power3.out",
-    overwrite: "auto",
-    onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }),
-  });
+  const mover = slot.querySelector<HTMLElement>(".work-mover");
+  if (!mover) return;
+  const shot = slot.querySelector<HTMLElement>(".work-shot");
+
+  gsap.to("[data-work-dim]", { opacity: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
+  gsap.killTweensOf(shot ? [mover, shot] : [mover]);
+
+  const tl = gsap.timeline({ onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }) });
+  if (shot) {
+    gsap.set(shot, { pointerEvents: "none" });
+    tl.to(shot, { opacity: 0, x: -16, duration: 0.3, ease: "power2.out" }, 0);
+  }
+  tl.to(mover, { x: 0, y: 0, scale: 1, boxShadow: CARD_SHADOW_REST, duration: 0.4, ease: "power3.out" }, 0);
 };
 
 export default function Portfolio() {
@@ -229,6 +243,13 @@ export default function Portfolio() {
       <a href="#main-content" className="skip-link">
         Skip to content
       </a>
+
+      {/* dims everything but the focused work card while hovering */}
+      <div
+        data-work-dim=""
+        aria-hidden="true"
+        style={{ position: "fixed", inset: 0, background: "rgba(11,11,12,0.45)", opacity: 0, pointerEvents: "none", zIndex: 30 }}
+      />
 
       {/* ── NAV ─────────────────────────────────────────────── */}
       <nav
@@ -376,47 +397,84 @@ export default function Portfolio() {
                       zIndex: 3 + i,
                     }}
                   >
-                    <a
-                      href={isLink ? p.href : undefined}
-                      target={isLink ? "_blank" : undefined}
-                      rel={isLink ? "noopener noreferrer" : undefined}
-                      className="work-card"
-                      style={{
-                        position: "relative",
-                        display: "block",
-                        background: "var(--bg)",
-                        border: "1px solid var(--ink)",
-                        padding: "clamp(18px,2.4vw,28px)",
-                        textDecoration: "none",
-                        color: "var(--ink)",
-                        boxShadow: "8px 8px 0 rgba(11,11,12,0.08)",
-                      }}
-                    >
-                      <span style={{ position: "absolute", top: "clamp(-30px,-2.4vw,-18px)", [right ? "left" : "right"]: 18, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3rem,6vw,5rem)", color: "var(--bg)", WebkitTextStroke: "2px var(--ink)", lineHeight: 1 } as CSSProperties}>
-                        {p.index}
-                      </span>
-                      <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
-                        {p.name}
-                      </h3>
-                      {p.timeline && (
-                        <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
-                          {p.timeline}
+                    <div className="work-mover" style={{ position: "relative", boxShadow: "8px 8px 0 rgba(11,11,12,0.08)" }}>
+                      <a
+                        href={isLink ? p.href : undefined}
+                        target={isLink ? "_blank" : undefined}
+                        rel={isLink ? "noopener noreferrer" : undefined}
+                        className="work-card"
+                        style={{
+                          position: "relative",
+                          display: "block",
+                          background: "var(--bg)",
+                          border: "1px solid var(--ink)",
+                          padding: "clamp(18px,2.4vw,28px)",
+                          textDecoration: "none",
+                          color: "var(--ink)",
+                        }}
+                      >
+                        <span style={{ position: "absolute", top: "clamp(-30px,-2.4vw,-18px)", [right ? "left" : "right"]: 18, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3rem,6vw,5rem)", color: "var(--bg)", WebkitTextStroke: "2px var(--ink)", lineHeight: 1 } as CSSProperties}>
+                          {p.index}
+                        </span>
+                        <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
+                          {p.name}
+                        </h3>
+                        {p.timeline && (
+                          <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
+                            {p.timeline}
+                          </div>
+                        )}
+                        <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
+                          {p.description}
+                        </p>
+                        {p.metric && (
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
+                            <Square size={7} /> {p.metric}
+                          </div>
+                        )}
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
+                          {p.tech.map((t) => (
+                            <span key={t} style={chip}>{t}</span>
+                          ))}
                         </div>
+                      </a>
+                      {p.screenshot && (
+                        <a
+                          className="work-shot"
+                          href={isLink ? p.href : undefined}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          tabIndex={-1}
+                          aria-label={p.screenshotCta}
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: `calc(100% + ${SHOT_GAP}px)`,
+                            width: SHOT_W,
+                            aspectRatio: "1882 / 1085",
+                            border: "1px solid var(--ink)",
+                            background: "var(--bg-2)",
+                            boxShadow: "8px 8px 0 rgba(11,11,12,0.08)",
+                            overflow: "hidden",
+                            opacity: 0,
+                            pointerEvents: "none",
+                            textDecoration: "none",
+                          }}
+                        >
+                          <img
+                            src={p.screenshot}
+                            alt={`${p.name} — Chrome extension screenshot`}
+                            style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                          <span
+                            className="work-shot-cta"
+                            style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(11,11,12,0.62)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}
+                          >
+                            {p.screenshotCta} <span aria-hidden="true">&#8599;</span>
+                          </span>
+                        </a>
                       )}
-                      <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
-                        {p.description}
-                      </p>
-                      {p.metric && (
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
-                          <Square size={7} /> {p.metric}
-                        </div>
-                      )}
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
-                        {p.tech.map((t) => (
-                          <span key={t} style={chip}>{t}</span>
-                        ))}
-                      </div>
-                    </a>
+                    </div>
                   </div>
                 );
               })}

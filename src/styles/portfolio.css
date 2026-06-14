@@ -90,7 +90,19 @@ html:has(.portfolio) {
    centering distance can be measured per layout/viewport. */
 .portfolio .work-card {
   cursor: pointer;
+}
+.portfolio .work-mover {
   will-change: transform;
+}
+.portfolio .work-shot {
+  cursor: pointer;
+}
+.portfolio .work-shot-cta {
+  transition: opacity 0.25s ease;
+}
+.portfolio .work-shot:hover .work-shot-cta,
+.portfolio .work-shot:focus-visible .work-shot-cta {
+  opacity: 1 !important;
 }
 
 /* Disabled placeholder buttons must not react to the ghost hover fill. */

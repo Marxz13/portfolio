@@ -35,6 +35,10 @@ export interface Project {
   metric?: string;
   /** Optional build timeline, e.g. "2024 — EOY 2026". */
   timeline?: string;
+  /** Optional screenshot revealed beside the card on hover (path under public/). */
+  screenshot?: string;
+  /** Call-to-action label shown when hovering the screenshot. */
+  screenshotCta?: string;
   href: string;
 }
 
@@ -97,6 +101,8 @@ export const PROJECTS: Project[] = [
       "An AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines — ChatGPT, Perplexity, Gemini — with a side-panel AI consultant.",
     tech: ["Chrome MV3", "JavaScript", "Python", "LLMs"],
     metric: "454 live users worldwide",
+    screenshot: "/zicy-chromeex.png",
+    screenshotCta: "Go to Chrome Extension",
     href: "https://chromewebstore.google.com/detail/zicy-%E2%80%93-aeogeo-audit-ai-co/bbgmbofeglplaaamnfgmiejbeacokfbn",
   },
   {
