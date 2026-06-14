@@ -94,21 +94,11 @@ const btnGhost: CSSProperties = {
   padding: "15px 24px",
 };
 
-// "Download CV" has no real destination yet — render it as a disabled button
-// rather than a focusable href="#" dead-end. Swap for <a href={cv} download>
-// once a résumé URL exists.
-const btnGhostDisabled: CSSProperties = {
-  ...btnGhost,
-  background: "none",
-  cursor: "not-allowed",
-  opacity: 0.5,
-};
-
 const Square = ({ size = 7, color = "var(--accent)" }: { size?: number; color?: string }) => (
   <span style={{ width: size, height: size, background: color, flex: "none", display: "inline-block" }} />
 );
 
-const SKILL_OFFSETS = ["0px", "clamp(0px,4vw,52px)", "clamp(0px,8vw,104px)"];
+const SKILL_OFFSETS = ["0px", "clamp(0px,3vw,40px)", "clamp(0px,6vw,80px)", "clamp(0px,9vw,120px)"];
 
 /* ── Work-card hover: slide the hovered card to the row's center and lift
    it forward — like pulling a folder out of a cabinet. Driven with GSAP so
@@ -359,9 +349,9 @@ export default function Portfolio() {
                 <a href="#work" className="btn-dark" style={{ ...btnDark, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "15px 24px" }}>
                   View work <span aria-hidden="true">&#9632;</span>
                 </a>
-                <button type="button" className="btn-ghost" disabled aria-disabled="true" title="CV coming soon" style={{ ...btnGhostDisabled, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "14px 22px" }}>
+                <a href={PROFILE.cv} download className="btn-ghost" style={{ ...btnGhost, textTransform: "uppercase", fontSize: 12, letterSpacing: "0.08em", padding: "14px 22px" }}>
                   Download CV
-                </button>
+                </a>
                 <span style={{ display: "flex", flexDirection: "column", justifyContent: "center", paddingLeft: 14, borderLeft: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11, color: "var(--muted)" }}>
                   {PROFILE.contributions.toLocaleString()} commits
                   <br />
@@ -639,9 +629,12 @@ export default function Portfolio() {
               <a href={PROFILE.github} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={btnGhost} aria-label={`GitHub profile ${PROFILE.githubHandle} (opens in a new tab)`}>
                 github / {PROFILE.githubHandle}
               </a>
-              <button type="button" className="btn-ghost" disabled aria-disabled="true" title="CV coming soon" style={btnGhostDisabled}>
+              <a href={PROFILE.linkedin} target="_blank" rel="noopener noreferrer" className="btn-ghost" style={btnGhost} aria-label="LinkedIn profile (opens in a new tab)">
+                linkedin
+              </a>
+              <a href={PROFILE.cv} download className="btn-ghost" style={btnGhost}>
                 download cv
-              </button>
+              </a>
             </div>
 
             {/* contribution band */}
@@ -664,7 +657,7 @@ export default function Portfolio() {
             </div>
 
             <footer style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: "clamp(44px,7vh,72px)", paddingTop: 24, borderTop: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--muted)" }}>
-              <span>&#169; 2026 {PROFILE.name} — {PROFILE.role}</span>
+              <span>&#169; 2026 {PROFILE.fullName} — {PROFILE.role}</span>
               <span>Built with GSAP · pixel-perfect</span>
             </footer>
           </div>

@@ -6,11 +6,17 @@
 
 export interface Profile {
   name: string;
+  /** Full name used in the footer / formal contexts. */
+  fullName: string;
   role: string;
   age: number;
   email: string;
   github: string;
   githubHandle: string;
+  linkedin: string;
+  location: string;
+  /** Path to the résumé PDF (served from public/). */
+  cv: string;
   /** Annual GitHub contribution count shown in the stats band. */
   contributions: number;
   /** Portrait used by the pixelization canvas. Replace with your own. */
@@ -64,16 +70,20 @@ export interface ExperienceEntry {
 
 export const PROFILE: Profile = {
   name: "MARZ",
-  role: "Fullstack Developer",
+  fullName: "Mar Zallan Ismail",
+  role: "Full-Stack Engineer",
   age: 24,
-  email: "hello@marz.dev",
+  email: "marzallan13@gmail.com",
   github: "https://github.com/Marxz13",
   githubHandle: "@Marxz13",
+  linkedin: "https://linkedin.com/in/marzallan",
+  location: "Kuala Lumpur, MY",
+  cv: "/Mar_Zallan_Resume.pdf",
   contributions: 6000,
   photo:
     "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=900&h=1100&fit=crop&crop=faces&q=80",
   intro:
-    "Friendly, introverted, and quietly relentless. I turn ambiguous ideas into shipped products — caring most about the details everyone else skips.",
+    "Full-stack engineer shipping enterprise apps, SaaS platforms, and AI-native tools end to end — React/TypeScript on the front, Python & Node.js on the back, AWS underneath. I own products from architecture through CI/CD to production.",
   statement: "I build software that ships, scales & stays out of the way.",
 };
 
@@ -85,11 +95,11 @@ export const NAV: NavLink[] = [
 ];
 
 export const MARQUEE: string[] = [
-  "FULLSTACK DEVELOPER",
-  "SHIPS FAST",
-  "DESIGN-MINDED",
-  "RESULT-DRIVEN",
-  "QUIETLY RELENTLESS",
+  "FULL-STACK ENGINEER",
+  "SHIPS END-TO-END",
+  "AI-NATIVE TOOLING",
+  "ENTERPRISE & SAAS",
+  "REACT · PYTHON · AWS",
 ];
 
 export const PROJECTS: Project[] = [
@@ -148,37 +158,41 @@ export const PROJECTS: Project[] = [
 
 export const SKILLS: SkillGroup[] = [
   {
+    label: "Languages",
+    items: ["TypeScript", "JavaScript", "Python", "Go", "SQL", "Bash"],
+  },
+  {
     label: "Frontend",
-    items: ["TypeScript", "React", "Next.js", "Tailwind CSS", "GSAP", "Framer Motion"],
+    items: ["React", "Next.js", "React Native", "Tailwind CSS", "shadcn/ui", "Vite"],
   },
   {
     label: "Backend",
-    items: ["Node.js", "NestJS", "Go", "PostgreSQL", "Prisma", "GraphQL"],
+    items: ["Node.js", "FastAPI", "Flask", "REST APIs", "WebSockets", "Celery / Kafka"],
   },
   {
-    label: "Infra & Tools",
-    items: ["Docker", "AWS", "Redis", "CI / CD", "Vercel", "Git"],
+    label: "Data & Cloud",
+    items: ["PostgreSQL", "MongoDB", "Redis", "AWS (EC2)", "Docker", "GitHub Actions"],
   },
 ];
 
 export const EXPERIENCE: ExperienceEntry[] = [
   {
-    period: "2024 — NOW",
-    role: "Fullstack Developer · Independent",
+    period: "2025 — NOW",
+    role: "Software Engineer · Zicy",
     blurb:
-      "Designing and shipping products end-to-end for founders and small teams — from schema to deploy.",
+      "Own core SaaS modules — Content Optimizer, billing/quota, admin, and the Chrome plugin — end to end, from REST API design to React dashboards to AWS production ops (EC2, GitHub Actions, Celery, Nginx). Shipped Stripe billing and AEO/GEO features for 15+ enterprise beta clients.",
     current: true,
   },
   {
-    period: "2022 — 2024",
-    role: "Software Engineer · Product Studio",
+    period: "2024 — 2025",
+    role: "Junior Data Engineer · Growth.Pro",
     blurb:
-      "Built core features across web apps and internal tooling; owned the frontend architecture and API layer.",
+      "Built an XGBoost property-price model (89% R²) over 15,000+ records, plus a production Flask REST API with PyTest coverage and automated data pipelines that cut manual processing 60%.",
   },
   {
-    period: "2021 — 2022",
-    role: "Frontend Developer · Agency",
+    period: "2023 — 2024",
+    role: "Full-Stack Developer · Fuji Elevator",
     blurb:
-      "Crafted marketing sites and interactive experiences with a focus on motion and performance.",
+      "Architected a 32-page enterprise ERP for elevator operations: a React 18 + TypeScript front end with role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
   },
 ];
