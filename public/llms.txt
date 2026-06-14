@@ -1,0 +1,26 @@
+# Marz - Mar Zallan Ismail
+
+> Full-stack / software engineer (24, Kuala Lumpur, MY). I build software that ships, scales, and stays out of the way - owning products from database and API design through CI/CD to production.
+
+Marz (Mar Zallan Ismail) is a full-stack engineer working across React/TypeScript front ends, Python and Node.js back ends, and AWS infrastructure. Open to full-time full-stack and software engineering roles in Kuala Lumpur or remote. This site is a single-page portfolio; the resume PDF has the full detail.
+
+## Initiatives
+- [Tokkae](https://tokkae.com): Shopee-style multi-vendor marketplace built end to end - buyer & seller web, buyer & seller mobile apps, and an admin console - with real-time chat and a recommendation feed. Next.js 16, React 19, Supabase, Go, WebSockets.
+- [Zicy](https://zicy.com): AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines (ChatGPT, Perplexity, Gemini), with a side-panel AI consultant. Chrome MV3, JavaScript, Python, LLMs. 454 live users.
+- [Scale POS](https://scalekh.com): native, offline-first iPad point-of-sale for multi-vendor retail (F&B and retail) with BLE receipt printing and barcode scanning. React Native, Expo, SQLite, Convex.
+- [Scale Inventory](https://scalekh.com): Tauri + Rust desktop inventory system for F&B and retail - purchase orders, cycle counts, par-level reorder alerts, recipe/BOM costing, synced offline-first. Tauri, Rust, React, TypeScript, SQLite.
+
+## Experience
+- Software Engineer, [Zicy](https://zicy.com) (2025-now): owns core SaaS modules end to end - Content Optimizer, billing/quota, admin, and the Chrome plugin - from REST API design to React dashboards to AWS production ops (EC2, GitHub Actions, Celery, Nginx). Shipped Stripe billing and AEO/GEO features for 15+ enterprise beta clients.
+- Junior Data Engineer, [Growth.Pro](https://growthpro.asia) (2024-2025): built an XGBoost property-price model (89% R2) over 15,000+ records, a production Flask REST API with PyTest coverage, and automated data pipelines that cut manual processing 60%.
+- Full-Stack Developer, [Fuji Elevator](https://fujielevator.com.kh) (2023-2024): worked with Fuji Elevator to help build an entire running system - a 32-page enterprise ERP (React 18 + TypeScript, role-based access, FastAPI back end with 100+ endpoints, WebSocket notifications, automated document generation).
+
+## Education
+- B.Sc. Computer Science, University of Nottingham Malaysia (2022-2025) - Second Class Honours, Upper Division (2:1).
+
+## Contact
+- Email: marzallan13@gmail.com
+- GitHub: https://github.com/Marxz13
+- LinkedIn: https://linkedin.com/in/marzallan
+- WhatsApp: +60 11-1143 3952
+- Resume: /Mar_Zallan_Resume.pdf

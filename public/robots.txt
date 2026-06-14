@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+# Public portfolio - crawling and AI indexing welcome.
+User-agent: *
+Allow: /
+
+Sitemap: https://marzallan.com/sitemap.xml
