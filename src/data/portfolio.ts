@@ -26,6 +26,12 @@ export interface NavLink {
   href: string;
 }
 
+export interface ProjectPanel {
+  label: string;
+  /** Optional screenshot; a labeled placeholder is shown until one is provided. */
+  image?: string;
+}
+
 export interface Project {
   index: string;        // "01"
   name: string;
@@ -39,6 +45,8 @@ export interface Project {
   screenshot?: string;
   /** Call-to-action label shown when hovering the screenshot. */
   screenshotCta?: string;
+  /** Optional multi-panel preview revealed beside the card; click to expand. */
+  panels?: ProjectPanel[];
   href: string;
 }
 
@@ -92,6 +100,12 @@ export const PROJECTS: Project[] = [
       "A Shopee-style multi-vendor marketplace built end-to-end across buyer & seller web, buyer & seller mobile apps, and an admin console — with real-time chat and a “One-Piece” recommendation feed.",
     tech: ["Next.js 16", "React 19", "Supabase", "Go", "WebSockets"],
     timeline: "2024 — EOY 2026",
+    panels: [
+      { label: "Buyer Site" },
+      { label: "Seller Site" },
+      { label: "Admin Site" },
+      { label: "Mobile View" },
+    ],
     href: "https://tokkae.com",
   },
   {

@@ -105,6 +105,21 @@ html:has(.portfolio) {
   opacity: 1 !important;
 }
 
+/* Tokkae-style multi-panel preview: each panel expands into the lightbox. */
+.portfolio .work-panel {
+  transition: border-color 0.2s ease;
+}
+.portfolio .work-panel:hover {
+  border-color: var(--accent);
+}
+.portfolio .work-panel-expand {
+  transition: opacity 0.2s ease;
+}
+.portfolio .work-panel:hover .work-panel-expand,
+.portfolio .work-panel:focus-visible .work-panel-expand {
+  opacity: 1 !important;
+}
+
 /* Disabled placeholder buttons must not react to the ghost hover fill. */
 .portfolio .btn-ghost:disabled,
 .portfolio .btn-ghost:disabled:hover {

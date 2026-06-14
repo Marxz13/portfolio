@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef } from "react";
+import { CSSProperties, useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -116,9 +116,9 @@ const SKILL_OFFSETS = ["0px", "clamp(0px,4vw,52px)", "clamp(0px,8vw,104px)"];
    current transform, so it's robust mid-animation and across breakpoints). */
 const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
 const CARD_SHADOW_HOVER = "16px 16px 0 rgba(31,70,255,0.18)";
-const SHOT_W = 340; // screenshot preview width (px)
-const SHOT_GAP = 16; // gap between the card and its screenshot
-const SHOT_MIN_VW = 1200; // only reveal the side preview when there's room for it
+const SHOT_W = 340; // single-screenshot preview width (px)
+const PANELS_W = 380; // multi-panel preview width (px)
+const SHOT_GAP = 16; // gap between the card and its preview panel
 
 const prefersReduced = () =>
   window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -144,9 +144,11 @@ const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
   const container = slot.parentElement;
   const mover = slot.querySelector<HTMLElement>(".work-mover");
   if (!container || !mover) return;
-  const shot = slot.querySelector<HTMLElement>(".work-shot");
-  const showShot = !!shot && window.innerWidth >= SHOT_MIN_VW;
+  const preview = slot.querySelector<HTMLElement>(".work-preview");
   const dxCenter = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
+  // only reveal the side preview if the card + gap + preview fit the row
+  const showPreview =
+    !!preview && slot.offsetWidth + SHOT_GAP + preview.offsetWidth <= container.clientWidth;
 
   slotTimelines.get(slot)?.kill();
   hoverZ += 1;
@@ -155,11 +157,11 @@ const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
 
   const tl = gsap.timeline();
   tl.to(mover, { x: dxCenter, y: -12, scale: 1.04, boxShadow: CARD_SHADOW_HOVER, duration: 0.45, ease: "power3.out" });
-  if (showShot && shot) {
-    // once centered, slide left to make room and reveal the screenshot
-    tl.to(mover, { x: dxCenter - (SHOT_W + SHOT_GAP) / 2, duration: 0.45, ease: "power3.out" })
-      .fromTo(shot, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "<")
-      .set(shot, { pointerEvents: "auto" });
+  if (showPreview && preview) {
+    // once centered, slide left to make room and reveal the preview panel
+    tl.to(mover, { x: dxCenter - (preview.offsetWidth + SHOT_GAP) / 2, duration: 0.45, ease: "power3.out" })
+      .fromTo(preview, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "<")
+      .set(preview, { pointerEvents: "auto" });
   }
   slotTimelines.set(slot, tl);
 };
@@ -169,15 +171,15 @@ const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
   const slot = e.currentTarget;
   const mover = slot.querySelector<HTMLElement>(".work-mover");
   if (!mover) return;
-  const shot = slot.querySelector<HTMLElement>(".work-shot");
+  const preview = slot.querySelector<HTMLElement>(".work-preview");
 
   slotTimelines.get(slot)?.kill();
   gsap.to("[data-work-dim]", { opacity: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
 
   const tl = gsap.timeline({ onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }) });
-  if (shot) {
-    gsap.set(shot, { pointerEvents: "none" });
-    tl.to(shot, { opacity: 0, x: -16, duration: 0.3, ease: "power2.out" }, 0);
+  if (preview) {
+    gsap.set(preview, { pointerEvents: "none" });
+    tl.to(preview, { opacity: 0, x: -16, duration: 0.3, ease: "power2.out" }, 0);
   }
   tl.to(mover, { x: 0, y: 0, scale: 1, boxShadow: CARD_SHADOW_REST, duration: 0.4, ease: "power3.out" }, 0);
   slotTimelines.set(slot, tl);
@@ -185,6 +187,19 @@ const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
 
 export default function Portfolio() {
   const root = useRef<HTMLDivElement | null>(null);
+  const [lightbox, setLightbox] = useState<{ image?: string; label: string } | null>(null);
+  const lightboxCloseRef = useRef<HTMLButtonElement | null>(null);
+
+  // Close the expanded panel on Escape; move focus into the dialog when it opens.
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key === "Escape") setLightbox(null);
+    };
+    window.addEventListener("keydown", onKey);
+    lightboxCloseRef.current?.focus();
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   useEffect(() => {
     const el = root.current;
@@ -398,8 +413,12 @@ export default function Portfolio() {
                     data-rest-z={3 + i}
                     onMouseEnter={pullCardToCenter}
                     onMouseLeave={releaseCard}
-                    onFocus={pullCardToCenter}
-                    onBlur={releaseCard}
+                    onFocus={(ev) => {
+                      if (!ev.currentTarget.contains(ev.relatedTarget as Node)) pullCardToCenter(ev);
+                    }}
+                    onBlur={(ev) => {
+                      if (!ev.currentTarget.contains(ev.relatedTarget as Node)) releaseCard(ev);
+                    }}
                     style={{
                       position: "relative",
                       alignSelf: right ? "flex-end" : "flex-start",
@@ -452,7 +471,7 @@ export default function Portfolio() {
                       </a>
                       {p.screenshot && (
                         <a
-                          className="work-shot"
+                          className="work-preview work-shot"
                           href={isLink ? p.href : undefined}
                           target="_blank"
                           rel="noopener noreferrer"
@@ -485,6 +504,48 @@ export default function Portfolio() {
                             {p.screenshotCta} <span aria-hidden="true">&#8599;</span>
                           </span>
                         </a>
+                      )}
+                      {p.panels && (
+                        <div
+                          className="work-preview work-panels"
+                          style={{
+                            position: "absolute",
+                            top: 0,
+                            left: `calc(100% + ${SHOT_GAP}px)`,
+                            width: PANELS_W,
+                            height: "100%",
+                            display: "grid",
+                            gridTemplateColumns: "1fr 1fr",
+                            gridTemplateRows: "1fr 1fr",
+                            gap: 10,
+                            opacity: 0,
+                            pointerEvents: "none",
+                          }}
+                        >
+                          {p.panels.map((panel) => (
+                            <button
+                              key={panel.label}
+                              type="button"
+                              className="work-panel"
+                              aria-label={`Expand ${panel.label}`}
+                              onClick={(ev) => {
+                                ev.stopPropagation();
+                                setLightbox({ image: panel.image, label: panel.label });
+                              }}
+                              style={{ position: "relative", border: "1px solid var(--ink)", background: "var(--bg-2)", cursor: "pointer", overflow: "hidden", padding: 0 }}
+                            >
+                              {panel.image && (
+                                <img src={panel.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                              )}
+                              <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px", textAlign: "center", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--ink)" }}>
+                                {panel.label}
+                              </span>
+                              <span className="work-panel-expand" aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(31,70,255,0.92)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}>
+                                Expand &#8599;
+                              </span>
+                            </button>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
@@ -609,6 +670,46 @@ export default function Portfolio() {
           </div>
         </section>
       </main>
+
+      {/* expanded panel preview */}
+      {lightbox && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${lightbox.label} preview`}
+          onClick={() => setLightbox(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: "clamp(20px,5vw,64px)", background: "rgba(11,11,12,0.82)" }}
+        >
+          <div
+            onClick={(ev) => ev.stopPropagation()}
+            style={{ position: "relative", width: "100%", maxWidth: "min(1100px, 92vw)", maxHeight: "88vh", display: "flex", flexDirection: "column", background: "var(--bg)", border: "1px solid var(--ink)", boxShadow: "16px 16px 0 rgba(31,70,255,0.18)" }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, padding: "14px 18px", borderBottom: "1px solid var(--line)" }}>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, letterSpacing: "0.06em", textTransform: "uppercase" }}>{lightbox.label}</span>
+              <button
+                type="button"
+                ref={lightboxCloseRef}
+                onClick={() => setLightbox(null)}
+                aria-label="Close preview"
+                className="btn-ghost"
+                style={{ ...btnGhost, gap: 8, padding: "8px 14px", fontSize: 12, cursor: "pointer", background: "none" }}
+              >
+                Close <span aria-hidden="true">&#10005;</span>
+              </button>
+            </div>
+            <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-2)", overflow: "auto" }}>
+              {lightbox.image ? (
+                <img src={lightbox.image} alt={`${lightbox.label} screenshot`} style={{ display: "block", maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+              ) : (
+                <div style={{ padding: "clamp(48px,10vw,120px)", textAlign: "center" }}>
+                  <div style={{ fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(2rem,5vw,3.4rem)", color: "var(--ink)", marginBottom: 12 }}>{lightbox.label}</div>
+                  <div style={{ fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)" }}>screenshot coming soon</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
