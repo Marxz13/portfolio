@@ -31,6 +31,10 @@ export interface Project {
   name: string;
   description: string;
   tech: string[];
+  /** Optional traction/highlight shown on the card, e.g. "454 live users worldwide". */
+  metric?: string;
+  /** Optional build timeline, e.g. "2024 — EOY 2026". */
+  timeline?: string;
   href: string;
 }
 
@@ -81,9 +85,10 @@ export const PROJECTS: Project[] = [
     index: "01",
     name: "Tokkae",
     description:
-      "A Shopee-style multi-vendor marketplace — buyer web + mobile, a rider/driver app, a seller console with KPIs, and real-time chat, all surfaced through a “One-Piece” recommendation feed.",
+      "A Shopee-style multi-vendor marketplace built end-to-end across buyer & seller web, buyer & seller mobile apps, and an admin console — with real-time chat and a “One-Piece” recommendation feed.",
     tech: ["Next.js 16", "React 19", "Supabase", "Go", "WebSockets"],
-    href: "#",
+    timeline: "2024 — EOY 2026",
+    href: "https://tokkae.com",
   },
   {
     index: "02",
@@ -91,15 +96,17 @@ export const PROJECTS: Project[] = [
     description:
       "An AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines — ChatGPT, Perplexity, Gemini — with a side-panel AI consultant.",
     tech: ["Chrome MV3", "JavaScript", "Python", "LLMs"],
-    href: "https://www.zicy.com",
+    metric: "454 live users worldwide",
+    href: "https://chromewebstore.google.com/detail/zicy-%E2%80%93-aeogeo-audit-ai-co/bbgmbofeglplaaamnfgmiejbeacokfbn",
   },
   {
     index: "03",
     name: "Scale POS",
     description:
-      "A multi-vendor POS & retail-ops platform — F&B and retail under one org-level, multi-store dashboard. Offline-first iPad POS plus a Tauri desktop suite on a Convex backend.",
-    tech: ["Tauri", "Rust", "Expo", "Convex", "SQLite"],
-    href: "#",
+      "A multi-vendor retail-ops platform — F&B and retail under one org-level, multi-store dashboard. Scale POS (native, offline-first iPad) and Scale Inventory (Tauri + Rust desktop) on a Convex backend.",
+    tech: ["React Native", "Tauri", "Rust", "Convex", "SQLite"],
+    timeline: "2025 — EOY 2027",
+    href: "https://scalekh.com",
   },
 ];
 

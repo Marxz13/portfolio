@@ -1,6 +1,6 @@
 "use client";
 
-import { CSSProperties, useEffect, useRef } from "react";
+import { CSSProperties, MouseEvent as ReactMouseEvent, useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -109,6 +109,46 @@ const Square = ({ size = 7, color = "var(--accent)" }: { size?: number; color?: 
 );
 
 const SKILL_OFFSETS = ["0px", "clamp(0px,4vw,52px)", "clamp(0px,8vw,104px)"];
+
+/* ── Work-card hover: slide the hovered card to the row's center and lift
+   it forward — like pulling a folder out of a cabinet. Driven with GSAP so
+   the centering distance is measured per layout (offsetLeft/Width ignore any
+   current transform, so it's robust mid-animation and across breakpoints). */
+const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
+const CARD_SHADOW_HOVER = "16px 16px 0 rgba(31,70,255,0.18)";
+
+const pullCardToCenter = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+  const card = e.currentTarget;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const container = card.parentElement;
+  if (!container) return;
+  const dx = (container.clientWidth - card.offsetWidth) / 2 - card.offsetLeft;
+  gsap.set(card, { zIndex: 50 });
+  gsap.to(card, {
+    x: dx,
+    y: -10,
+    scale: 1.03,
+    boxShadow: CARD_SHADOW_HOVER,
+    duration: 0.45,
+    ease: "power3.out",
+    overwrite: "auto",
+  });
+};
+
+const releaseCard = (e: ReactMouseEvent<HTMLAnchorElement>) => {
+  const card = e.currentTarget;
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  gsap.to(card, {
+    x: 0,
+    y: 0,
+    scale: 1,
+    boxShadow: CARD_SHADOW_REST,
+    duration: 0.45,
+    ease: "power3.out",
+    overwrite: "auto",
+    onComplete: () => gsap.set(card, { zIndex: card.dataset.restZ || "" }),
+  });
+};
 
 export default function Portfolio() {
   const root = useRef<HTMLDivElement | null>(null);
@@ -303,7 +343,7 @@ export default function Portfolio() {
             <span className="section-num" style={{ ...watermark, top: "clamp(20px,4vw,60px)", left: "clamp(-20px,-1vw,0px)", color: "rgba(11,11,12,0.05)" }}>02</span>
             <div data-reveal="" style={{ position: "relative", zIndex: 2, display: "flex", alignItems: "baseline", gap: 16, marginBottom: "clamp(34px,6vh,64px)" }}>
               <h2 style={sectionTitle}>Selected Work</h2>
-              <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>[ 2024 — 2026 ]</span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>[ 2024 — 2027 ]</span>
             </div>
 
             <div style={{ position: "relative", display: "flex", flexDirection: "column" }}>
@@ -317,7 +357,10 @@ export default function Portfolio() {
                     target={isLink ? "_blank" : undefined}
                     rel={isLink ? "noopener noreferrer" : undefined}
                     data-reveal=""
+                    data-rest-z={3 + i}
                     className="work-card"
+                    onMouseEnter={pullCardToCenter}
+                    onMouseLeave={releaseCard}
                     style={{
                       position: "relative",
                       alignSelf: right ? "flex-end" : "flex-start",
@@ -338,9 +381,19 @@ export default function Portfolio() {
                     <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
                       {p.name}
                     </h3>
+                    {p.timeline && (
+                      <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
+                        {p.timeline}
+                      </div>
+                    )}
                     <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
                       {p.description}
                     </p>
+                    {p.metric && (
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
+                        <Square size={7} /> {p.metric}
+                      </div>
+                    )}
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
                       {p.tech.map((t) => (
                         <span key={t} style={chip}>{t}</span>

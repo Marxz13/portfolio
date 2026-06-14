@@ -81,10 +81,12 @@ html:has(.portfolio) {
 .portfolio .btn-ghost { transition: background 0.25s, color 0.25s; }
 .portfolio .btn-ghost:hover { background: var(--ink); color: var(--bg); }
 
-.portfolio .work-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
-.portfolio .work-card:hover {
-  transform: translate(-4px, -4px);
-  box-shadow: 14px 14px 0 color-mix(in srgb, var(--accent) 16%, transparent);
+/* The work-card hover motion (slide-to-center + lift, like pulling a folder
+   from a cabinet) is driven imperatively by GSAP in Portfolio.tsx so the
+   centering distance can be measured per layout/viewport. */
+.portfolio .work-card {
+  cursor: pointer;
+  will-change: transform;
 }
 
 /* Disabled placeholder buttons must not react to the ghost hover fill. */
