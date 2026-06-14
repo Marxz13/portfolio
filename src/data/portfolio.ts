@@ -79,26 +79,26 @@ export const MARQUEE: string[] = [
 export const PROJECTS: Project[] = [
   {
     index: "01",
-    name: "Atlas",
+    name: "Tokkae",
     description:
-      "A realtime analytics platform — event pipeline, query engine, and dashboards used across the org.",
-    tech: ["Next.js", "tRPC", "PostgreSQL", "Redis"],
+      "A Shopee-style multi-vendor marketplace — buyer web + mobile, a rider/driver app, a seller console with KPIs, and real-time chat, all surfaced through a “One-Piece” recommendation feed.",
+    tech: ["Next.js 16", "React 19", "Supabase", "Go", "WebSockets"],
     href: "#",
   },
   {
     index: "02",
-    name: "Ferro",
+    name: "Zicy",
     description:
-      "Collaborative design-to-code tooling with live multiplayer editing and an instant preview engine.",
-    tech: ["React", "Node.js", "WebSockets", "Docker"],
-    href: "#",
+      "An AEO/GEO Chrome extension that audits how ready any page is to be cited by AI answer engines — ChatGPT, Perplexity, Gemini — with a side-panel AI consultant.",
+    tech: ["Chrome MV3", "JavaScript", "Python", "LLMs"],
+    href: "https://www.zicy.com",
   },
   {
     index: "03",
-    name: "Mono",
+    name: "Scale POS",
     description:
-      "A minimalist personal finance tracker — local-first, encrypted, and fast enough to feel native.",
-    tech: ["SvelteKit", "Go", "SQLite"],
+      "A multi-vendor POS & retail-ops platform — F&B and retail under one org-level, multi-store dashboard. Offline-first iPad POS plus a Tauri desktop suite on a Convex backend.",
+    tech: ["Tauri", "Rust", "Expo", "Convex", "SQLite"],
     href: "#",
   },
 ];
