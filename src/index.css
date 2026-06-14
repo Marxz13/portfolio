@@ -1,0 +1,31 @@
+/* Global resets only. All portfolio styling lives in src/styles/portfolio.css,
+   scoped under the .portfolio root so it never leaks into the host page. */
+
+:root {
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  background: #ffffff;
+  color: #0b0b0c;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  isolation: isolate;
+}

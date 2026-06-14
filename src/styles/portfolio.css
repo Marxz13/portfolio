@@ -1,0 +1,95 @@
+/* ───────────────────────────────────────────────────────────
+   Marz Portfolio — design tokens, fonts, keyframes
+   Scope everything under `.portfolio` so it never leaks into the
+   rest of the host app. All component styling is inline (see the
+   .tsx files) and reads these CSS custom properties.
+   ─────────────────────────────────────────────────────────── */
+
+/* Fonts (Pixelify Sans / Space Grotesk / Space Mono) are loaded via a
+   <link> in index.html for better performance — see the project README. */
+
+.portfolio {
+  /* color */
+  --bg: #ffffff;
+  --bg-2: #f3f4f6;
+  --ink: #0b0b0c;
+  --muted: #6b6f76;
+  --line: rgba(11, 11, 12, 0.14);
+  --grid: rgba(11, 11, 12, 0.035);
+  --accent: #1f46ff;
+
+  /* type */
+  --pixel: "Pixelify Sans", monospace;
+  --sans: "Space Grotesk", system-ui, sans-serif;
+  --mono: "Space Mono", ui-monospace, monospace;
+
+  position: relative;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  /* `clip` (not `hidden`) contains the bleeding watermark numerals without
+     turning .portfolio into a scroll container — which would break the
+     sticky nav (overflow-x:hidden forces overflow-y to auto). */
+  overflow-x: clip;
+
+  /* faint pixel-paper grid */
+  background-image:
+    linear-gradient(var(--grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.portfolio *,
+.portfolio *::before,
+.portfolio *::after {
+  box-sizing: border-box;
+}
+
+.portfolio ::selection {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* smooth in-page anchor scrolling — apply on <html> in the host app
+   or keep here if the portfolio owns the page */
+html:has(.portfolio) {
+  scroll-behavior: smooth;
+}
+
+@keyframes marz-marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* The de-pixelation effect benefits from nearest-neighbour scaling */
+.portfolio canvas[data-pixel-portrait] {
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portfolio [data-marquee-track] { animation: none !important; }
+}
+
+/* ── interactions (hover/focus states) ───────────────────────── */
+.portfolio .nav-link { transition: color 0.25s; }
+.portfolio .nav-link:hover { color: var(--ink); }
+
+.portfolio .btn-dark { transition: background 0.25s, transform 0.25s; }
+.portfolio .btn-dark:hover { background: var(--accent); transform: translateY(-2px); }
+
+.portfolio .btn-ghost { transition: background 0.25s, color 0.25s; }
+.portfolio .btn-ghost:hover { background: var(--ink); color: var(--bg); }
+
+.portfolio .work-card { transition: transform 0.3s ease, box-shadow 0.3s ease; }
+.portfolio .work-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 14px 14px 0 rgba(31, 70, 255, 0.16);
+}
+
+.portfolio a:focus-visible,
+.portfolio .btn-dark:focus-visible,
+.portfolio .btn-ghost:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}

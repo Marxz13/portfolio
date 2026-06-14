@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<style>
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;}
+  ::selection{background:#1F46FF;color:#fff;}
+  @keyframes marz-marquee{from{transform:translateX(0);}to{transform:translateX(-50%);}}
+</style>
+</helmet>
+
+<div ref="{{ rootRef }}" style="position:relative;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:32px 32px;--bg:#FFFFFF;--bg-2:#F3F4F6;--ink:#0B0B0C;--muted:#6B6F76;--line:rgba(11,11,12,0.14);--grid:rgba(11,11,12,0.035);--accent:#1F46FF;--pixel:'Pixelify Sans',monospace;--sans:'Space Grotesk',system-ui,sans-serif;--mono:'Space Mono',monospace;">
+
+  <!-- NAV -->
+  <nav data-nav style="position:sticky;top:0;z-index:40;display:flex;align-items:center;justify-content:space-between;padding:14px clamp(20px,5vw,64px);background:rgba(255,255,255,0.82);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);">
+    <a href="#top" style="display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--ink);">
+      <span style="width:10px;height:10px;background:var(--accent);display:inline-block;"></span>
+      <span style="font-family:var(--pixel);font-weight:600;font-size:22px;letter-spacing:0.04em;">MARZ</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:clamp(16px,2.4vw,36px);">
+      <a href="#about" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;transition:color .25s;" style-hover="{{ navHover }}">about</a>
+      <a href="#work" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;transition:color .25s;" style-hover="{{ navHover }}">work</a>
+      <a href="#skills" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;transition:color .25s;" style-hover="{{ navHover }}">stack</a>
+      <a href="#contact" style="font-family:var(--mono);font-size:12px;color:var(--muted);text-decoration:none;transition:color .25s;" style-hover="{{ navHover }}">contact</a>
+      <span style="display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11px;color:var(--ink);"><span style="width:8px;height:8px;background:var(--accent);display:inline-block;"></span>available</span>
+    </div>
+  </nav>
+
+  <!-- HERO (layered: name overlaps portrait, ghost echo + scattered pixels) -->
+  <header id="top" data-screen-label="Hero" style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(36px,6vh,72px) clamp(20px,5vw,64px) clamp(28px,5vh,56px);">
+    <span style="position:absolute;top:clamp(20px,5vh,60px);right:clamp(20px,5vw,64px);width:16px;height:16px;background:var(--accent);"></span>
+    <span style="position:absolute;bottom:8px;left:clamp(60px,16vw,220px);width:11px;height:11px;background:var(--ink);"></span>
+    <div style="display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:clamp(24px,5vw,60px);align-items:center;min-height:min(80vh,740px);">
+      <!-- portrait -->
+      <div data-hero-frame style="position:relative;z-index:1;width:100%;max-width:420px;">
+        <span style="position:absolute;top:-6px;left:-6px;width:16px;height:16px;background:var(--accent);z-index:3;"></span>
+        <div style="position:relative;aspect-ratio:4/5;overflow:hidden;border:1px solid var(--ink);background:var(--bg-2);" onMouseEnter="{{ onFaceHover }}">
+          <canvas id="face-canvas" style="position:absolute;inset:0;width:100%;height:100%;display:block;image-rendering:pixelated;filter:grayscale(1) contrast(1.06);"></canvas>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:11px;font-family:var(--mono);font-size:11px;color:var(--muted);"><span>marz.png</span><span>[ pixel-rendered ]</span></div>
+      </div>
+      <!-- intro (overlaps portrait) -->
+      <div style="position:relative;z-index:2;">
+        <div data-hero-eyebrow style="display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:14px;"><span style="width:7px;height:7px;background:var(--accent);display:inline-block;"></span>Fullstack Developer / 24</div>
+        <h1 data-hero-title style="margin:0;line-height:0.82;">
+          <span style="display:block;position:relative;margin-left:clamp(-210px,-16vw,-70px);">
+            <span aria-hidden="true" style="position:absolute;left:0;top:0;font-family:var(--pixel);font-weight:700;font-size:clamp(4rem,12.5vw,9.5rem);color:rgba(31,70,255,0.22);letter-spacing:0.01em;transform:translate(11px,11px);z-index:0;">MARZ</span>
+            <span style="position:relative;font-family:var(--pixel);font-weight:700;font-size:clamp(4rem,12.5vw,9.5rem);color:var(--ink);letter-spacing:0.01em;z-index:1;">MARZ</span>
+          </span>
+          <span style="display:block;font-family:var(--sans);font-weight:500;font-size:clamp(1.2rem,2.3vw,1.85rem);line-height:1.2;margin-top:0.55em;max-width:22ch;">I build software that ships, scales &amp; stays out of the way.</span>
+        </h1>
+        <p data-hero-text style="max-width:46ch;margin:24px 0 0;font-size:clamp(14px,1.1vw,16px);line-height:1.65;color:var(--muted);">Friendly, introverted, and quietly relentless. I turn ambiguous ideas into shipped products — caring most about the details everyone else skips.</p>
+        <div data-hero-meta style="display:flex;flex-wrap:wrap;align-items:stretch;gap:12px;margin-top:32px;">
+          <a href="#work" style="display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:15px 24px;transition:background .25s,transform .25s;" style-hover="{{ btnDarkHover }}">View work <span>&#9632;</span></a>
+          <a href="#" data-cv style="display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ink);color:var(--ink);text-decoration:none;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:14px 22px;transition:background .25s,color .25s;" style-hover="{{ btnGhostHover }}">Download CV</a>
+          <span style="display:flex;flex-direction:column;justify-content:center;padding-left:14px;border-left:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--muted);">6,000 commits<br><span style="color:var(--ink);">this year</span></span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- MARQUEE strip (full-bleed, breaks the rhythm) -->
+  <div style="position:relative;overflow:hidden;border-top:1px solid var(--ink);border-bottom:1px solid var(--ink);background:var(--ink);color:var(--bg);padding:13px 0;">
+    <div style="display:flex;width:max-content;animation:marz-marquee 26s linear infinite;font-family:var(--pixel);font-weight:600;font-size:clamp(1.1rem,1.9vw,1.6rem);letter-spacing:0.05em;white-space:nowrap;">
+      <span style="display:inline-flex;align-items:center;">FULLSTACK DEVELOPER<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>SHIPS FAST<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>DESIGN-MINDED<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>RESULT-DRIVEN<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>QUIETLY RELENTLESS<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span></span>
+      <span style="display:inline-flex;align-items:center;" aria-hidden="true">FULLSTACK DEVELOPER<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>SHIPS FAST<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>DESIGN-MINDED<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>RESULT-DRIVEN<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span>QUIETLY RELENTLESS<span style="width:10px;height:10px;background:var(--accent);margin:0 26px;"></span></span>
+    </div>
+  </div>
+
+  <!-- ABOUT (giant watermark numeral bleeds behind statement) -->
+  <section id="about" data-screen-label="About" style="position:relative;overflow:hidden;">
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(80px,13vh,150px) clamp(20px,5vw,64px);">
+      <span style="position:absolute;top:clamp(-30px,-3vw,0px);right:clamp(-30px,-2vw,0px);font-family:var(--pixel);font-weight:700;font-size:clamp(9rem,26vw,22rem);line-height:0.7;color:rgba(31,70,255,0.07);z-index:0;pointer-events:none;user-select:none;">01</span>
+      <div style="position:relative;z-index:1;max-width:62%;">
+        <div data-reveal style="font-family:var(--mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:24px;">// About</div>
+        <p data-reveal style="margin:0;font-family:var(--sans);font-weight:500;font-size:clamp(1.5rem,3vw,2.7rem);line-height:1.26;letter-spacing:-0.01em;">I care about the details most people skip — the empty states, the loading flicker, the migration that runs at 3am <span style="color:var(--accent);">without waking anyone.</span></p>
+      </div>
+      <p data-reveal style="position:relative;z-index:1;margin:34px 0 0;margin-left:auto;max-width:50ch;font-size:16px;line-height:1.7;color:var(--muted);text-align:right;">I'm a fullstack developer who likes quiet focus and loud results — designing the database, wiring the API, polishing the last pixel. I judge my work by one thing: did it actually ship, and does it hold up.</p>
+    </div>
+  </section>
+
+  <!-- WORK (offset cards that overlap in a diagonal stack) -->
+  <section id="work" data-screen-label="Work" style="position:relative;overflow:hidden;background:var(--bg-2);border-top:1px solid var(--ink);">
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px);">
+      <span style="position:absolute;top:clamp(20px,4vw,60px);left:clamp(-20px,-1vw,0px);font-family:var(--pixel);font-weight:700;font-size:clamp(9rem,26vw,22rem);line-height:0.7;color:rgba(11,11,12,0.05);z-index:0;pointer-events:none;user-select:none;">02</span>
+      <div data-reveal style="position:relative;z-index:2;display:flex;align-items:baseline;gap:16px;margin-bottom:clamp(34px,6vh,64px);">
+        <h2 style="margin:0;font-family:var(--sans);font-weight:600;font-size:clamp(1.7rem,3.2vw,2.6rem);letter-spacing:-0.01em;">Selected Work</h2>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--muted);">[ 2024 — 2026 ]</span>
+      </div>
+
+      <div style="position:relative;display:flex;flex-direction:column;">
+        <a href="#" data-reveal style="position:relative;align-self:flex-start;width:min(100%,720px);z-index:3;background:var(--bg);border:1px solid var(--ink);padding:clamp(24px,3vw,40px);text-decoration:none;color:var(--ink);box-shadow:8px 8px 0 rgba(11,11,12,0.08);transition:transform .3s ease,box-shadow .3s ease;" style-hover="{{ cardHover }}">
+          <span style="position:absolute;top:clamp(-30px,-2.4vw,-18px);right:18px;font-family:var(--pixel);font-weight:700;font-size:clamp(3rem,6vw,5rem);color:var(--bg);-webkit-text-stroke:2px var(--ink);line-height:1;">01</span>
+          <h3 style="margin:0;font-family:var(--pixel);font-weight:600;font-size:clamp(1.9rem,3vw,2.6rem);line-height:1;letter-spacing:0.01em;">Atlas</h3>
+          <p style="margin:12px 0 0;max-width:46ch;font-size:15px;line-height:1.6;color:var(--muted);">A realtime analytics platform — event pipeline, query engine, and dashboards used across the org.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">Next.js</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">tRPC</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">PostgreSQL</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">Redis</span>
+          </div>
+        </a>
+        <a href="#" data-reveal style="position:relative;align-self:flex-end;width:min(100%,720px);margin-top:clamp(-44px,-4vw,-24px);z-index:4;background:var(--bg);border:1px solid var(--ink);padding:clamp(24px,3vw,40px);text-decoration:none;color:var(--ink);box-shadow:8px 8px 0 rgba(11,11,12,0.08);transition:transform .3s ease,box-shadow .3s ease;" style-hover="{{ cardHover }}">
+          <span style="position:absolute;top:clamp(-30px,-2.4vw,-18px);left:18px;font-family:var(--pixel);font-weight:700;font-size:clamp(3rem,6vw,5rem);color:var(--bg);-webkit-text-stroke:2px var(--ink);line-height:1;">02</span>
+          <h3 style="margin:0;font-family:var(--pixel);font-weight:600;font-size:clamp(1.9rem,3vw,2.6rem);line-height:1;letter-spacing:0.01em;">Ferro</h3>
+          <p style="margin:12px 0 0;max-width:46ch;font-size:15px;line-height:1.6;color:var(--muted);">Collaborative design-to-code tooling with live multiplayer editing and an instant preview engine.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">React</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">Node.js</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">WebSockets</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">Docker</span>
+          </div>
+        </a>
+        <a href="#" data-reveal style="position:relative;align-self:flex-start;width:min(100%,720px);margin-top:clamp(-44px,-4vw,-24px);z-index:5;background:var(--bg);border:1px solid var(--ink);padding:clamp(24px,3vw,40px);text-decoration:none;color:var(--ink);box-shadow:8px 8px 0 rgba(11,11,12,0.08);transition:transform .3s ease,box-shadow .3s ease;" style-hover="{{ cardHover }}">
+          <span style="position:absolute;top:clamp(-30px,-2.4vw,-18px);right:18px;font-family:var(--pixel);font-weight:700;font-size:clamp(3rem,6vw,5rem);color:var(--bg);-webkit-text-stroke:2px var(--ink);line-height:1;">03</span>
+          <h3 style="margin:0;font-family:var(--pixel);font-weight:600;font-size:clamp(1.9rem,3vw,2.6rem);line-height:1;letter-spacing:0.01em;">Mono</h3>
+          <p style="margin:12px 0 0;max-width:46ch;font-size:15px;line-height:1.6;color:var(--muted);">A minimalist personal finance tracker — local-first, encrypted, and fast enough to feel native.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:18px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">SvelteKit</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">Go</span>
+            <span style="font-family:var(--mono);font-size:11px;color:var(--muted);border:1px solid var(--line);padding:4px 9px;">SQLite</span>
+          </div>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS (staggered columns over watermark) -->
+  <section id="skills" data-screen-label="Skills" style="position:relative;overflow:hidden;border-top:1px solid var(--ink);">
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px);">
+      <span style="position:absolute;top:clamp(-20px,-1vw,10px);right:clamp(-20px,-1vw,0px);font-family:var(--pixel);font-weight:700;font-size:clamp(9rem,26vw,22rem);line-height:0.7;color:rgba(31,70,255,0.07);z-index:0;pointer-events:none;user-select:none;">03</span>
+      <h2 data-reveal style="position:relative;z-index:1;margin:0 0 clamp(34px,6vh,60px);font-family:var(--sans);font-weight:600;font-size:clamp(1.7rem,3.2vw,2.6rem);letter-spacing:-0.01em;">The Stack</h2>
+      <div style="position:relative;z-index:1;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:clamp(24px,4vw,48px);align-items:start;">
+        <div data-reveal>
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);padding-bottom:14px;border-bottom:2px solid var(--accent);margin-bottom:18px;">Frontend</div>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px;font-size:16px;">
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>TypeScript</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>React</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Next.js</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Tailwind CSS</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>GSAP</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Framer Motion</li>
+          </ul>
+        </div>
+        <div data-reveal style="margin-top:clamp(0px,4vw,52px);">
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);padding-bottom:14px;border-bottom:2px solid var(--accent);margin-bottom:18px;">Backend</div>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px;font-size:16px;">
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Node.js</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>NestJS</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Go</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>PostgreSQL</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Prisma</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>GraphQL</li>
+          </ul>
+        </div>
+        <div data-reveal style="margin-top:clamp(0px,8vw,104px);">
+          <div style="font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--ink);padding-bottom:14px;border-bottom:2px solid var(--accent);margin-bottom:18px;">Infra &amp; Tools</div>
+          <ul style="list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:13px;font-size:16px;">
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Docker</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>AWS</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Redis</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>CI / CD</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Vercel</li>
+            <li style="display:flex;align-items:center;gap:11px;"><span style="width:7px;height:7px;background:var(--accent);flex:none;"></span>Git</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE (staircase rows over watermark) -->
+  <section id="experience" data-screen-label="Experience" style="position:relative;overflow:hidden;background:var(--bg-2);border-top:1px solid var(--ink);">
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px);">
+      <span style="position:absolute;bottom:clamp(-30px,-3vw,-10px);left:clamp(-20px,-1vw,0px);font-family:var(--pixel);font-weight:700;font-size:clamp(9rem,26vw,22rem);line-height:0.7;color:rgba(11,11,12,0.05);z-index:0;pointer-events:none;user-select:none;">04</span>
+      <h2 data-reveal style="position:relative;z-index:1;margin:0 0 clamp(34px,6vh,60px);font-family:var(--sans);font-weight:600;font-size:clamp(1.7rem,3.2vw,2.6rem);letter-spacing:-0.01em;">Experience</h2>
+
+      <div data-reveal style="position:relative;z-index:1;display:grid;grid-template-columns:150px 1fr;gap:clamp(14px,3vw,40px);padding:26px clamp(20px,3vw,36px);border:1px solid var(--ink);background:var(--bg);margin-right:auto;width:min(100%,720px);">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--accent);font-weight:700;">2024 — NOW</span>
+        <div>
+          <h3 style="margin:0;font-family:var(--sans);font-weight:600;font-size:clamp(1.3rem,2.1vw,1.7rem);">Fullstack Developer · Independent</h3>
+          <p style="margin:9px 0 0;max-width:54ch;font-size:15px;line-height:1.6;color:var(--muted);">Designing and shipping products end-to-end for founders and small teams — from schema to deploy.</p>
+        </div>
+      </div>
+      <div data-reveal style="position:relative;z-index:1;display:grid;grid-template-columns:150px 1fr;gap:clamp(14px,3vw,40px);padding:26px clamp(20px,3vw,36px);border:1px solid var(--ink);border-top:none;background:var(--bg);margin-left:auto;width:min(100%,720px);">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">2022 — 2024</span>
+        <div>
+          <h3 style="margin:0;font-family:var(--sans);font-weight:600;font-size:clamp(1.3rem,2.1vw,1.7rem);">Software Engineer · Product Studio</h3>
+          <p style="margin:9px 0 0;max-width:54ch;font-size:15px;line-height:1.6;color:var(--muted);">Built core features across web apps and internal tooling; owned the frontend architecture and API layer.</p>
+        </div>
+      </div>
+      <div data-reveal style="position:relative;z-index:1;display:grid;grid-template-columns:150px 1fr;gap:clamp(14px,3vw,40px);padding:26px clamp(20px,3vw,36px);border:1px solid var(--ink);border-top:none;background:var(--bg);margin-right:auto;width:min(100%,720px);">
+        <span style="font-family:var(--mono);font-size:13px;color:var(--muted);">2021 — 2022</span>
+        <div>
+          <h3 style="margin:0;font-family:var(--sans);font-weight:600;font-size:clamp(1.3rem,2.1vw,1.7rem);">Frontend Developer · Agency</h3>
+          <p style="margin:9px 0 0;max-width:54ch;font-size:15px;line-height:1.6;color:var(--muted);">Crafted marketing sites and interactive experiences with a focus on motion and performance.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT (giant bleeding wordmark + echo, overlapped controls) -->
+  <section id="contact" data-screen-label="Contact" style="position:relative;overflow:hidden;border-top:1px solid var(--ink);">
+    <div style="position:relative;max-width:1280px;margin:0 auto;padding:clamp(72px,12vh,140px) clamp(20px,5vw,64px) clamp(48px,8vh,90px);">
+      <div data-reveal style="display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;"><span style="width:7px;height:7px;background:var(--accent);display:inline-block;"></span>05 / Contact</div>
+      <h2 data-reveal style="position:relative;margin:0;line-height:0.84;">
+        <span aria-hidden="true" style="position:absolute;left:0;top:0;font-family:var(--pixel);font-weight:700;font-size:clamp(3.2rem,12vw,9rem);color:rgba(31,70,255,0.22);transform:translate(10px,10px);letter-spacing:0.01em;">LET'S BUILD.</span>
+        <span style="position:relative;font-family:var(--pixel);font-weight:700;font-size:clamp(3.2rem,12vw,9rem);color:var(--ink);letter-spacing:0.01em;">LET'S <span style="color:var(--accent);">BUILD.</span></span>
+      </h2>
+      <div data-reveal style="position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:12px;margin-top:clamp(28px,4vh,44px);">
+        <a href="mailto:hello@marz.dev" style="display:inline-flex;align-items:center;gap:10px;background:var(--ink);color:var(--bg);text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.04em;padding:16px 26px;transition:background .25s,transform .25s;" style-hover="{{ btnDarkHover }}">hello@marz.dev <span>&#9632;</span></a>
+        <a href="https://github.com/Marxz13" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ink);color:var(--ink);text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.04em;padding:15px 24px;transition:background .25s,color .25s;" style-hover="{{ btnGhostHover }}">github / @Marxz13</a>
+        <a href="#" data-cv style="display:inline-flex;align-items:center;gap:10px;border:1px solid var(--ink);color:var(--ink);text-decoration:none;font-family:var(--mono);font-size:13px;font-weight:700;letter-spacing:0.04em;padding:15px 24px;transition:background .25s,color .25s;" style-hover="{{ btnGhostHover }}">download cv</a>
+      </div>
+
+      <!-- contribution band (overlaps upward) -->
+      <div data-reveal style="position:relative;z-index:2;margin-top:clamp(48px,8vh,90px);border:1px solid var(--ink);background:var(--bg);padding:clamp(22px,4vw,38px);box-shadow:10px 10px 0 rgba(31,70,255,0.14);">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:24px;">
+          <div>
+            <div style="font-family:var(--mono);font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;">This year on GitHub</div>
+            <div style="font-family:var(--pixel);font-weight:700;font-size:clamp(2.6rem,6vw,4rem);line-height:0.9;">6,000 <span style="font-family:var(--sans);font-weight:500;font-size:0.32em;color:var(--muted);letter-spacing:0;">contributions</span></div>
+          </div>
+          <a href="https://github.com/Marxz13" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:12px;color:var(--accent);text-decoration:none;">github.com/Marxz13 &#8599;</a>
+        </div>
+        <div style="overflow:hidden;">{{ contribGrid }}</div>
+      </div>
+
+      <footer style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:clamp(44px,7vh,72px);padding-top:24px;border-top:1px solid var(--line);font-family:var(--mono);font-size:11.5px;color:var(--muted);">
+        <span>&#169; 2026 MARZ — Fullstack Developer</span>
+        <span>Built with GSAP · pixel-perfect</span>
+      </footer>
+    </div>
+  </section>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.rootRef = React.createRef();
+    this.faceURL = "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=900&h=1100&fit=crop&crop=faces&q=80";
+    this.onResize = this.onResize.bind(this);
+  }
+
+  renderVals(){
+    return {
+      rootRef: this.rootRef,
+      onFaceHover: () => this.shimmerFace(),
+      navHover: { color: "var(--ink)" },
+      cardHover: { transform: "translate(-4px,-4px)", boxShadow: "14px 14px 0 rgba(31,70,255,0.16)" },
+      btnDarkHover: { transform: "translateY(-2px)", background: "var(--accent)" },
+      btnGhostHover: { background: "var(--ink)", color: "var(--bg)" },
+      contribGrid: this.buildContribGrid()
+    };
+  }
+
+  buildContribGrid(){
+    let seed = 1337;
+    const rnd = () => { seed = (seed * 1103515245 + 12345) & 0x7fffffff; return seed / 0x7fffffff; };
+    const colors = [
+      "rgba(11,11,12,0.06)",
+      "rgba(11,11,12,0.20)",
+      "rgba(11,11,12,0.40)",
+      "rgba(11,11,12,0.66)",
+      "#1F46FF"
+    ];
+    const cells = [];
+    for (let i = 0; i < 371; i++){
+      const r = rnd();
+      let lvl;
+      if (r < 0.06) lvl = 0;
+      else if (r < 0.24) lvl = 1;
+      else if (r < 0.54) lvl = 2;
+      else if (r < 0.82) lvl = 3;
+      else lvl = 4;
+      cells.push(React.createElement("div", {
+        key: i,
+        style: { width: "100%", height: "100%", background: colors[lvl] }
+      }));
+    }
+    return React.createElement("div", {
+      style: {
+        display: "grid",
+        gridTemplateRows: "repeat(7, 1fr)",
+        gridAutoFlow: "column",
+        gridAutoColumns: "minmax(8px, 1fr)",
+        gap: "3px",
+        height: "104px",
+        minWidth: "640px"
+      }
+    }, cells);
+  }
+
+  componentDidMount(){
+    this.initFace();
+    window.addEventListener("resize", this.onResize);
+    this.waitGsap(0);
+  }
+
+  componentWillUnmount(){
+    window.removeEventListener("resize", this.onResize);
+    clearTimeout(this._faceSafety);
+    clearTimeout(this._heroSafety);
+    clearTimeout(this._revealSafety);
+  }
+
+  waitGsap(n){
+    if (window.gsap){
+      this.initAnims();
+    } else if (n < 80){
+      setTimeout(() => this.waitGsap(n + 1), 50);
+    }
+  }
+
+  onResize(){
+    this.sizeFace();
+    this.drawFace(1);
+  }
+
+  /* ---------- Pixelization ---------- */
+  initFace(){
+    const root = this.rootRef.current;
+    if (!root) return;
+    const canvas = root.querySelector("#face-canvas");
+    if (!canvas) return;
+    this.faceCanvas = canvas;
+    this.faceCtx = canvas.getContext("2d");
+    this.tmp = document.createElement("canvas");
+    this.tctx = this.tmp.getContext("2d");
+    this.sizeFace();
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.onload = () => { this.faceImg = img; this.revealFace(); };
+    img.onerror = () => { this.faceImg = null; this.revealFace(); };
+    img.src = this.faceURL;
+  }
+
+  sizeFace(){
+    const c = this.faceCanvas;
+    if (!c) return;
+    const r = c.getBoundingClientRect();
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.max(2, Math.round(r.width * dpr));
+    c.height = Math.max(2, Math.round(r.height * dpr));
+  }
+
+  drawCover(ctx, src, w, h){
+    const iw = src.width, ih = src.height;
+    const ir = iw / ih, r = w / h;
+    let dw, dh, dx, dy;
+    if (ir > r){ dh = h; dw = h * ir; dx = (w - dw) / 2; dy = 0; }
+    else { dw = w; dh = w / ir; dx = 0; dy = (h - dh) / 2; }
+    ctx.clearRect(0, 0, w, h);
+    ctx.drawImage(src, dx, dy, dw, dh);
+  }
+
+  drawPlaceholder(ctx, w, h){
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, "#9aa0aa");
+    g.addColorStop(1, "#2b2e36");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,255,255,0.92)";
+    ctx.font = "700 " + Math.round(h * 0.5) + "px monospace";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("M", w / 2, h * 0.54);
+  }
+
+  drawFace(detail){
+    const c = this.faceCanvas, ctx = this.faceCtx;
+    if (!c || !ctx) return;
+    const W = c.width, H = c.height;
+    const d = Math.max(0.012, Math.min(1, detail));
+    const sw = Math.max(2, Math.round(W * d));
+    const sh = Math.max(2, Math.round(H * d));
+    const t = this.tmp, tc = this.tctx;
+    t.width = sw; t.height = sh;
+    tc.imageSmoothingEnabled = true;
+    if (this.faceImg) this.drawCover(tc, this.faceImg, sw, sh);
+    else this.drawPlaceholder(tc, sw, sh);
+    ctx.imageSmoothingEnabled = false;
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(t, 0, 0, sw, sh, 0, 0, W, H);
+  }
+
+  revealFace(){
+    this.drawFace(0.04);
+    const finish = () => this.drawFace(1);
+    if (window.gsap){
+      const obj = { d: 0.04 };
+      window.gsap.to(obj, { d: 1, duration: 1.9, ease: "steps(9)", onUpdate: () => this.drawFace(obj.d), onComplete: finish });
+    } else {
+      const start = performance.now(), dur = 1700, steps = 9;
+      const step = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        const q = Math.round(p * steps) / steps;
+        this.drawFace(0.04 + (1 - 0.04) * q);
+        if (p < 1) requestAnimationFrame(step); else finish();
+      };
+      requestAnimationFrame(step);
+    }
+    clearTimeout(this._faceSafety);
+    this._faceSafety = setTimeout(finish, 2900);
+  }
+
+  shimmerFace(){
+    if (this._shimmering) return;
+    this._shimmering = true;
+    const obj = { d: 0.09 };
+    if (window.gsap){
+      window.gsap.to(obj, { d: 1, duration: 0.9, ease: "steps(7)", onUpdate: () => this.drawFace(obj.d), onComplete: () => { this._shimmering = false; } });
+    } else {
+      const start = performance.now(), dur = 800;
+      const step = (now) => {
+        const p = Math.min(1, (now - start) / dur);
+        this.drawFace(0.09 + (1 - 0.09) * p);
+        if (p < 1) requestAnimationFrame(step); else this._shimmering = false;
+      };
+      requestAnimationFrame(step);
+    }
+  }
+
+  /* ---------- GSAP entrance + scroll reveals ---------- */
+  initAnims(){
+    const g = window.gsap, root = this.rootRef.current;
+    if (!g || !root) return;
+    if (window.ScrollTrigger) g.registerPlugin(window.ScrollTrigger);
+
+    g.from(root.querySelector("[data-nav]"), { opacity: 0, y: -16, duration: 0.6, ease: "power3.out" });
+
+    const tl = g.timeline({ defaults: { ease: "power3.out" }, delay: 0.1 });
+    tl.from("[data-hero-eyebrow]", { opacity: 0, y: 16, duration: 0.6 })
+      .from("[data-hero-title] > span", { opacity: 0, y: 30, duration: 0.85, stagger: 0.14 }, "-=0.3")
+      .from("[data-hero-text]", { opacity: 0, y: 18, duration: 0.7 }, "-=0.45")
+      .from("[data-hero-meta] > *", { opacity: 0, y: 14, duration: 0.6, stagger: 0.09 }, "-=0.45")
+      .from("[data-hero-frame]", { opacity: 0, x: -20, duration: 0.9, ease: "power2.out" }, 0.12);
+
+    clearTimeout(this._heroSafety);
+    this._heroSafety = setTimeout(() => { if (tl.progress() < 1) tl.progress(1); }, 2900);
+
+    if (window.ScrollTrigger){
+      const reveals = g.utils.toArray(root.querySelectorAll("[data-reveal]"));
+      reveals.forEach((el) => {
+        g.from(el, {
+          opacity: 0, y: 26, duration: 0.8, ease: "power3.out",
+          scrollTrigger: { trigger: el, start: "top 90%" }
+        });
+      });
+      clearTimeout(this._revealSafety);
+      this._revealSafety = setTimeout(() => {
+        reveals.forEach((el) => {
+          const r = el.getBoundingClientRect();
+          if (parseFloat(getComputedStyle(el).opacity) < 0.05 && r.top < window.innerHeight * 1.2) {
+            g.set(el, { clearProps: "opacity,transform" });
+          }
+        });
+      }, 3200);
+    }
+  }
+}
+</script>
+</body>
+</html>
