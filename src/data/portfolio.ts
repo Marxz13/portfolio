@@ -218,7 +218,7 @@ export const EXPERIENCE: ExperienceEntry[] = [
     period: "2023 - 2024",
     role: "Full-Stack Developer · Fuji Elevator",
     blurb:
-      "Worked with Fuji Elevator (alongside their team, not in-house) to help build an entire running system: a 32-page enterprise ERP for elevator operations, with a React 18 + TypeScript front end and role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
+      "Worked with Fuji Elevator (alongside their team) to help build an entire running system: a 32-page enterprise ERP for elevator operations, with a React 18 + TypeScript front end and role-based access (8 roles, 80+ permissions) over a FastAPI back end with 100+ endpoints, WebSocket notifications, and automated document generation.",
     link: "fujielevator.com.kh",
   },
 ];
