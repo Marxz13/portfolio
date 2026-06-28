@@ -8,6 +8,8 @@ import "./styles/portfolio.css";
 import PixelPortrait from "./components/PixelPortrait";
 import Marquee from "./components/Marquee";
 import ContributionGraph from "./components/ContributionGraph";
+import ArchitectureDiagram from "./components/ArchitectureDiagram";
+import AlgorithmShowcase from "./components/AlgorithmShowcase";
 import {
   PROFILE,
   NAV,
@@ -24,9 +26,11 @@ import {
   SiNodedotjs, SiFastapi, SiFlask, SiCelery, SiApachekafka, SiSocketdotio,
   SiPostgresql, SiMongodb, SiRedis, SiSqlite, SiFirebase, SiSupabase,
   SiDigitalocean, SiDocker, SiGithubactions, SiNginx, SiLinux,
-  SiGit, SiPytest, SiJest, SiPostman, SiSwagger, SiStripe, SiN8N, SiOpenai, SiTauri,
+  SiGit, SiPytest, SiJest, SiPostman, SiSwagger, SiStripe, SiN8N, SiTauri,
+  SiNestjs, SiRust, SiHono, SiGooglechrome,
 } from "react-icons/si";
 import { FaAws } from "react-icons/fa";
+import { FiSearch, FiCpu } from "react-icons/fi";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -75,12 +79,36 @@ const STACK: StackItem[] = [
   { name: "Swagger", Icon: SiSwagger },
   { name: "Stripe", Icon: SiStripe },
   { name: "n8n", Icon: SiN8N },
-  { name: "OpenAI", Icon: SiOpenai },
+  { name: "LLM", Icon: FiCpu },
   { name: "Tauri", Icon: SiTauri },
 ];
 
 // split into 3 rows (interleaved so each row is a varied mix)
 const STACK_ROWS = [0, 1, 2].map((r) => STACK.filter((_, i) => i % 3 === r));
+
+/* Brand SVG logos for the per-project tech chips, keyed by the exact labels in
+   PROJECTS[].tech. Labels without a brand icon (WebSockets, ChromaDB, BLE
+   Printing, Barcode Scanning) fall back to a text-only chip. */
+const TECH_ICONS: Record<string, IconType> = {
+  "Next.js": SiNextdotjs,
+  "React 19": SiReact,
+  React: SiReact,
+  "React Native": SiReact,
+  TypeScript: SiTypescript,
+  NestJS: SiNestjs,
+  Go: SiGo,
+  Rust: SiRust,
+  Supabase: SiSupabase,
+  Expo: SiExpo,
+  SQLite: SiSqlite,
+  MongoDB: SiMongodb,
+  Hono: SiHono,
+  Tauri: SiTauri,
+  FastAPI: SiFastapi,
+  LLM: FiCpu,
+  AWS: FaAws,
+  "Chrome MV3": SiGooglechrome,
+};
 
 const LogoChips = ({ items, dup }: { items: StackItem[]; dup?: boolean }) => (
   <div className={dup ? "logo-seq logo-dup" : "logo-seq"} aria-hidden={dup || undefined}>
@@ -141,6 +169,9 @@ const monoLabel: CSSProperties = {
 };
 
 const chip: CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
   fontFamily: "var(--mono)",
   fontSize: 11,
   color: "var(--muted)",
@@ -196,85 +227,34 @@ const Square = ({ size = 7, color = "var(--accent)" }: { size?: number; color?: 
 );
 
 
-/* ── Work-card hover: slide the hovered card to the row's center and lift
-   it forward - like pulling a folder out of a cabinet. Driven with GSAP so
-   the centering distance is measured per layout (offsetLeft/Width ignore any
-   current transform, so it's robust mid-animation and across breakpoints). */
-const CARD_SHADOW_REST = "8px 8px 0 rgba(11,11,12,0.08)";
-const CARD_SHADOW_HOVER = "16px 16px 0 rgba(31,70,255,0.18)";
-const SHOT_W = 340; // single-screenshot preview width (px)
-const PANELS_W = 380; // multi-panel preview width (px)
-const SHOT_GAP = 16; // gap between the card and its preview panel
-
-const prefersReduced = () =>
-  window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-/* ── Work-card hover ──────────────────────────────────────────────
-   Handlers live on the stationary ".work-slot" (the hover zone never moves),
-   while only the inner ".work-mover" slides - so a card pulled to center can't
-   slip out from under the cursor and flicker. A full-page dim overlay fades in
-   to focus the active card; cards that carry a screenshot slide further left
-   once centered and reveal it on the right. Works for pointer + keyboard.
-
-   `slotTimelines` tracks each slot's active timeline so a re-hover can kill a
-   still-running release (and cancel its z-index reset). `hoverZ` is a monotonic
-   counter so the newest hover always sits above a card still animating back -
-   otherwise two cards momentarily share z-index 50 and DOM order wins, leaving
-   the card you just moved to stuck behind the previous one. */
-const slotTimelines = new WeakMap<HTMLElement, gsap.core.Timeline>();
-let hoverZ = 50;
-
-const pullCardToCenter = (e: { currentTarget: HTMLDivElement }) => {
-  if (prefersReduced()) return;
-  const slot = e.currentTarget;
-  const container = slot.parentElement;
-  const mover = slot.querySelector<HTMLElement>(".work-mover");
-  if (!container || !mover) return;
-  const preview = slot.querySelector<HTMLElement>(".work-preview");
-  const dxCenter = (container.clientWidth - slot.offsetWidth) / 2 - slot.offsetLeft;
-  // only reveal the side preview if the card + gap + preview fit the row
-  const showPreview =
-    !!preview && slot.offsetWidth + SHOT_GAP + preview.offsetWidth <= container.clientWidth;
-
-  slotTimelines.get(slot)?.kill();
-  hoverZ += 1;
-  gsap.set(slot, { zIndex: hoverZ });
-  gsap.to("[data-work-dim]", { opacity: 1, duration: 0.4, ease: "power2.out", overwrite: "auto" });
-
-  const tl = gsap.timeline();
-  tl.to(mover, { x: dxCenter, y: -12, scale: 1.04, boxShadow: CARD_SHADOW_HOVER, duration: 0.45, ease: "power3.out" });
-  if (showPreview && preview) {
-    // once centered, slide left to make room and reveal the preview panel
-    tl.to(mover, { x: dxCenter - (preview.offsetWidth + SHOT_GAP) / 2, duration: 0.45, ease: "power3.out" })
-      .fromTo(preview, { opacity: 0, x: -16 }, { opacity: 1, x: 0, duration: 0.4, ease: "power2.out" }, "<")
-      .set(preview, { pointerEvents: "auto" });
-  }
-  slotTimelines.set(slot, tl);
-};
-
-const releaseCard = (e: { currentTarget: HTMLDivElement }) => {
-  if (prefersReduced()) return;
-  const slot = e.currentTarget;
-  const mover = slot.querySelector<HTMLElement>(".work-mover");
-  if (!mover) return;
-  const preview = slot.querySelector<HTMLElement>(".work-preview");
-
-  slotTimelines.get(slot)?.kill();
-  gsap.to("[data-work-dim]", { opacity: 0, duration: 0.35, ease: "power2.out", overwrite: "auto" });
-
-  const tl = gsap.timeline({ onComplete: () => gsap.set(slot, { zIndex: slot.dataset.restZ || "" }) });
-  if (preview) {
-    gsap.set(preview, { pointerEvents: "none" });
-    tl.to(preview, { opacity: 0, x: -16, duration: 0.3, ease: "power2.out" }, 0);
-  }
-  tl.to(mover, { x: 0, y: 0, scale: 1, boxShadow: CARD_SHADOW_REST, duration: 0.4, ease: "power3.out" }, 0);
-  slotTimelines.set(slot, tl);
-};
-
 export default function Portfolio() {
   const root = useRef<HTMLDivElement | null>(null);
   const [lightbox, setLightbox] = useState<{ image?: string; label: string } | null>(null);
   const lightboxCloseRef = useRef<HTMLButtonElement | null>(null);
+  const [stackQuery, setStackQuery] = useState("");
+  // Active initiative shown in the Work section; defaults to the first project.
+  // Switches on tab hover / focus / tap, revealing that project's images below.
+  const [activeWork, setActiveWork] = useState(0);
+  // Detail body view: screenshots (default) vs architecture diagram vs algorithm
+  // showcase. Reset to screenshots whenever the active initiative changes.
+  const [detailView, setDetailView] = useState<"shots" | "arch" | "algo">("shots");
+  useEffect(() => setDetailView("shots"), [activeWork]);
+
+  // Stack search: when a query is typed, swap the marquees for a filtered grid.
+  const stackTrimmed = stackQuery.trim();
+  const stackMatches = stackTrimmed
+    ? STACK.filter((s) => s.name.toLowerCase().includes(stackTrimmed.toLowerCase()))
+    : [];
+
+  // The currently-shown initiative, plus its image set normalised to a single
+  // list of {label, image?} shots (panels as-is, or the lone screenshot).
+  const activeProject = PROJECTS[activeWork];
+  const activeShots = activeProject.panels
+    ? activeProject.panels
+    : activeProject.screenshot
+      ? [{ label: activeProject.name, image: activeProject.screenshot }]
+      : [];
+  const activeIsLink = Boolean(activeProject.href && activeProject.href !== "#");
 
   // Close the expanded panel on Escape; move focus into the dialog when it opens.
   useEffect(() => {
@@ -506,13 +486,6 @@ export default function Portfolio() {
         Skip to content
       </a>
 
-      {/* dims everything but the focused work card while hovering */}
-      <div
-        data-work-dim=""
-        aria-hidden="true"
-        style={{ position: "fixed", inset: 0, background: "rgba(11,11,12,0.45)", opacity: 0, pointerEvents: "none", zIndex: 30 }}
-      />
-
       {/* ── NAV ─────────────────────────────────────────────── */}
       <nav
         data-nav=""
@@ -635,10 +608,41 @@ export default function Portfolio() {
 
             {/* stack - endless logo marquees, alternating direction per row */}
             <div data-reveal="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(32px,5vh,52px)" }}>
-              <div style={{ ...monoLabel, marginBottom: 16 }}>// Stack</div>
-              {STACK_ROWS.map((row, i) => (
-                <LogoMarquee key={i} items={row} reverse={i % 2 === 1} duration={[34, 28, 38][i]} />
-              ))}
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 16 }}>
+                <div style={{ ...monoLabel, margin: 0 }}>// Stack</div>
+                <div className="stack-search">
+                  <FiSearch size={14} aria-hidden="true" />
+                  <input
+                    type="search"
+                    value={stackQuery}
+                    onChange={(e) => setStackQuery(e.target.value)}
+                    placeholder="Search the stack..."
+                    aria-label="Search the tech stack"
+                    spellCheck={false}
+                    autoComplete="off"
+                  />
+                </div>
+              </div>
+
+              {stackTrimmed ? (
+                stackMatches.length > 0 ? (
+                  <div className="stack-results">
+                    {stackMatches.map(({ name, Icon }) => (
+                      <span key={name} className="stack-logo">
+                        <Icon size={16} aria-hidden="true" /> {name}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ margin: "4px 0 0", fontFamily: "var(--mono)", fontSize: 13, color: "var(--muted)" }}>
+                    No match for &ldquo;{stackTrimmed}&rdquo; - not in my stack yet.
+                  </p>
+                )
+              ) : (
+                STACK_ROWS.map((row, i) => (
+                  <LogoMarquee key={i} items={row} reverse={i % 2 === 1} duration={[34, 28, 38][i]} />
+                ))
+              )}
             </div>
 
             {/* education */}
@@ -671,168 +675,145 @@ export default function Portfolio() {
               <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)" }}>[ 2024 - 2027 ]</span>
             </div>
 
-            <div style={{ position: "relative", display: "flex", flexDirection: "column" }}>
-              {PROJECTS.map((p, i) => {
-                const right = i % 2 === 1;
-                const isLink = Boolean(p.href && p.href !== "#");
-                return (
-                  <div
-                    key={p.index}
-                    className="work-slot"
-                    data-reveal=""
-                    data-rest-z={3 + i}
-                    onMouseEnter={pullCardToCenter}
-                    onMouseLeave={releaseCard}
-                    onFocus={(ev) => {
-                      if (!ev.currentTarget.contains(ev.relatedTarget as Node)) pullCardToCenter(ev);
-                    }}
-                    onBlur={(ev) => {
-                      if (!ev.currentTarget.contains(ev.relatedTarget as Node)) releaseCard(ev);
-                    }}
-                    style={{
-                      position: "relative",
-                      alignSelf: right ? "flex-end" : "flex-start",
-                      width: "min(100%,720px)",
-                      // heavy overlap = tightly packed, file-cabinet stack
-                      marginTop: i === 0 ? 0 : "clamp(-160px,-13vw,-120px)",
-                      zIndex: 3 + i,
-                    }}
-                  >
-                    <div className="work-mover" style={{ position: "relative", boxShadow: "8px 8px 0 rgba(11,11,12,0.08)" }}>
-                      <a
-                        href={isLink ? p.href : undefined}
-                        target={isLink ? "_blank" : undefined}
-                        rel={isLink ? "noopener noreferrer" : undefined}
-                        className="work-card"
-                        style={{
-                          position: "relative",
-                          display: "block",
-                          background: "var(--bg)",
-                          border: "1px solid var(--ink)",
-                          padding: "clamp(18px,2.4vw,28px)",
-                          textDecoration: "none",
-                          color: "var(--ink)",
-                        }}
+            <div data-reveal="" style={{ position: "relative" }}>
+              {/* horizontal tab row of initiatives - hover/tap to switch */}
+              <div className="init-tabs" role="tablist" aria-label="Initiatives">
+                {PROJECTS.map((p, i) => {
+                  const isActive = i === activeWork;
+                  return (
+                    <button
+                      key={p.index}
+                      type="button"
+                      role="tab"
+                      aria-selected={isActive}
+                      className={isActive ? "init-tab is-active" : "init-tab"}
+                      onMouseEnter={() => setActiveWork(i)}
+                      onFocus={() => setActiveWork(i)}
+                      onClick={() => setActiveWork(i)}
+                    >
+                      <span className="init-tab-index">{p.index}</span>
+                      <span className="init-tab-name">{p.name}</span>
+                      <span className="init-tab-sub">{p.timeline || p.metric}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* active initiative - detail + image panels drop down on change.
+                  Keyed by project so React remounts it, replaying the CSS drop. */}
+              <div key={activeProject.index} className="init-detail" role="tabpanel">
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 16px" }}>
+                  <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.7rem,2.6vw,2.4rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
+                    {activeProject.name}
+                  </h3>
+                  {activeProject.timeline && (
+                    <span style={{ fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>{activeProject.timeline}</span>
+                  )}
+                  {activeProject.metric && (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
+                      <Square size={7} /> {activeProject.metric}
+                    </span>
+                  )}
+                  {activeIsLink && (
+                    <a href={activeProject.href} target="_blank" rel="noopener noreferrer" style={{ marginLeft: "auto", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", color: "var(--accent)", textDecoration: "none" }}>
+                      {activeProject.screenshotCta || "Visit"} <span aria-hidden="true">&#8599;</span>
+                    </a>
+                  )}
+                </div>
+
+                <p style={{ margin: "14px 0 0", maxWidth: "62ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
+                  {activeProject.description}
+                </p>
+
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 16 }}>
+                  {activeProject.tech.map((t) => {
+                    const TechIcon = TECH_ICONS[t];
+                    return (
+                      <span key={t} style={chip}>
+                        {TechIcon && <TechIcon size={13} aria-hidden="true" />}
+                        {t}
+                      </span>
+                    );
+                  })}
+                </div>
+
+                {(activeProject.architecture || activeProject.algorithm) && (
+                  <div className="init-toggle" role="tablist" aria-label="Detail view">
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={detailView === "shots"}
+                      className={detailView === "shots" ? "init-toggle-btn is-active" : "init-toggle-btn"}
+                      onClick={() => setDetailView("shots")}
+                    >
+                      Screenshots
+                    </button>
+                    {activeProject.architecture && (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={detailView === "arch"}
+                        className={detailView === "arch" ? "init-toggle-btn is-active" : "init-toggle-btn"}
+                        onClick={() => setDetailView("arch")}
                       >
-                        <span style={{ position: "absolute", top: "clamp(-30px,-2.4vw,-18px)", [right ? "left" : "right"]: 18, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3rem,6vw,5rem)", color: "var(--bg)", WebkitTextStroke: "2px var(--ink)", lineHeight: 1 } as CSSProperties}>
-                          {p.index}
-                        </span>
-                        <h3 style={{ margin: 0, fontFamily: "var(--pixel)", fontWeight: 600, fontSize: "clamp(1.9rem,3vw,2.6rem)", lineHeight: 1, letterSpacing: "0.01em" }}>
-                          {p.name}
-                        </h3>
-                        {p.timeline && (
-                          <div style={{ marginTop: 8, fontFamily: "var(--mono)", fontSize: 12, color: "var(--muted)", letterSpacing: "0.04em" }}>
-                            {p.timeline}
-                          </div>
-                        )}
-                        <p style={{ margin: "12px 0 0", maxWidth: "46ch", fontSize: 15, lineHeight: 1.6, color: "var(--muted)" }}>
-                          {p.description}
-                        </p>
-                        {p.metric && (
-                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 14, fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--accent)" }}>
-                            <Square size={7} /> {p.metric}
-                          </div>
-                        )}
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: 7, marginTop: 18 }}>
-                          {p.tech.map((t) => (
-                            <span key={t} style={chip}>{t}</span>
-                          ))}
-                        </div>
-                      </a>
-                      {p.screenshot && (
-                        <a
-                          className="work-preview work-shot"
-                          href={isLink ? p.href : undefined}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          tabIndex={-1}
-                          aria-label={p.screenshotCta}
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: `calc(100% + ${SHOT_GAP}px)`,
-                            width: SHOT_W,
-                            aspectRatio: "1882 / 1085",
-                            border: "1px solid var(--ink)",
-                            background: "var(--bg-2)",
-                            boxShadow: "8px 8px 0 rgba(11,11,12,0.08)",
-                            overflow: "hidden",
-                            opacity: 0,
-                            pointerEvents: "none",
-                            textDecoration: "none",
-                          }}
-                        >
-                          <img
-                            src={p.screenshot}
-                            alt={`${p.name} - Chrome extension screenshot`}
-                            style={{ display: "block", width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                          <span
-                            className="work-shot-cta"
-                            style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, background: "rgba(11,11,12,0.62)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 13, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}
-                          >
-                            {p.screenshotCta} <span aria-hidden="true">&#8599;</span>
-                          </span>
-                        </a>
-                      )}
-                      {p.panels && (
-                        <div
-                          className="work-preview work-panels"
-                          style={{
-                            position: "absolute",
-                            top: 0,
-                            left: `calc(100% + ${SHOT_GAP}px)`,
-                            width: PANELS_W,
-                            height: "100%",
-                            display: "grid",
-                            gridTemplateColumns: p.panels.length >= 4 ? "1fr 1fr" : "1fr",
-                            gridAutoRows: "1fr",
-                            gap: 10,
-                            opacity: 0,
-                            pointerEvents: "none",
-                          }}
-                        >
-                          {p.panels.map((panel) =>
-                            panel.image ? (
-                              <button
-                                key={panel.label}
-                                type="button"
-                                className="work-panel"
-                                aria-label={`Expand ${panel.label}`}
-                                onClick={(ev) => {
-                                  ev.stopPropagation();
-                                  setLightbox({ image: panel.image, label: panel.label });
-                                }}
-                                style={{ position: "relative", border: "1px solid var(--ink)", background: "var(--bg-2)", cursor: "pointer", overflow: "hidden", padding: 0 }}
-                              >
-                                <img src={panel.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                                <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", padding: "0 8px", textAlign: "center", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.03em", color: "var(--ink)" }}>
-                                  {panel.label}
-                                </span>
-                                <span className="work-panel-expand" aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(31,70,255,0.92)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}>
-                                  Expand &#8599;
-                                </span>
-                              </button>
-                            ) : (
-                              // No screenshot yet: a "coming soon" slot framed in yellow caution tape.
-                              <div
-                                key={panel.label}
-                                className="work-panel-soon"
-                                style={{ position: "relative", border: "1px solid var(--ink)", overflow: "hidden" }}
-                              >
-                                <span style={{ position: "absolute", inset: 8, zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "0 6px", textAlign: "center" }}>
-                                  <span style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--ink)" }}>{panel.label}</span>
-                                  <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)" }}>Images coming soon</span>
-                                </span>
-                              </div>
-                            )
-                          )}
-                        </div>
-                      )}
-                    </div>
+                        Architecture
+                      </button>
+                    )}
+                    {activeProject.algorithm && (
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={detailView === "algo"}
+                        className={detailView === "algo" ? "init-toggle-btn is-active" : "init-toggle-btn"}
+                        onClick={() => setDetailView("algo")}
+                      >
+                        Algorithm
+                      </button>
+                    )}
                   </div>
-                );
-              })}
+                )}
+
+                {detailView === "arch" && activeProject.architecture ? (
+                  <ArchitectureDiagram spec={activeProject.architecture} />
+                ) : detailView === "algo" && activeProject.algorithm ? (
+                  <AlgorithmShowcase spec={activeProject.algorithm} />
+                ) : (
+                <div className="init-shots" style={{ marginTop: "clamp(20px,3vh,32px)" }}>
+                  {activeShots.map((shot) =>
+                    shot.image ? (
+                      <button
+                        key={shot.label}
+                        type="button"
+                        className="work-panel init-shot"
+                        aria-label={`Expand ${shot.label}`}
+                        onClick={() => setLightbox({ image: shot.image, label: shot.label })}
+                        style={{ position: "relative", aspectRatio: "16 / 10", border: "1px solid var(--ink)", background: "var(--bg-2)", cursor: "pointer", overflow: "hidden", padding: 0 }}
+                      >
+                        <img src={shot.image} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "top" }} />
+                        <span style={{ position: "absolute", left: 0, right: 0, bottom: 0, padding: "6px 8px", textAlign: "center", background: "rgba(11,11,12,0.55)", fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.03em", color: "var(--bg)" }}>
+                          {shot.label}
+                        </span>
+                        <span className="work-panel-expand" aria-hidden="true" style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, background: "rgba(31,70,255,0.92)", color: "var(--bg)", fontFamily: "var(--mono)", fontSize: 12, fontWeight: 700, letterSpacing: "0.04em", opacity: 0 }}>
+                          Expand &#8599;
+                        </span>
+                      </button>
+                    ) : (
+                      // No screenshot yet: a "coming soon" slot framed in yellow caution tape.
+                      <div
+                        key={shot.label}
+                        className="work-panel-soon init-shot"
+                        style={{ position: "relative", aspectRatio: "16 / 10", border: "1px solid var(--ink)", overflow: "hidden" }}
+                      >
+                        <span style={{ position: "absolute", inset: 8, zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, padding: "0 6px", textAlign: "center" }}>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: 11, fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--ink)" }}>{shot.label}</span>
+                          <span style={{ fontFamily: "var(--mono)", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted)" }}>Images coming soon</span>
+                        </span>
+                      </div>
+                    )
+                  )}
+                </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
@@ -921,10 +902,10 @@ export default function Portfolio() {
             </div>
             <h2 data-reveal="" style={{ position: "relative", margin: 0, lineHeight: 0.84 }}>
               <span aria-hidden="true" style={{ position: "absolute", left: 0, top: 0, fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3.2rem,12vw,9rem)", color: accentTint(22), transform: "translate(10px,10px)", letterSpacing: "0.01em" }}>
-                LET&apos;S BUILD.
+                LET&apos;S SHIP.
               </span>
               <span style={{ position: "relative", fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(3.2rem,12vw,9rem)", color: "var(--ink)", letterSpacing: "0.01em" }}>
-                LET&apos;S <span style={{ color: "var(--accent)" }}>BUILD.</span>
+                LET&apos;S <span style={{ color: "var(--accent)" }}>SHIP.</span>
               </span>
             </h2>
 
@@ -968,7 +949,7 @@ export default function Portfolio() {
 
             <footer style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, marginTop: "clamp(44px,7vh,72px)", paddingTop: 24, borderTop: "1px solid var(--line)", fontFamily: "var(--mono)", fontSize: 11.5, color: "var(--muted)" }}>
               <span>&#169; 2026 {PROFILE.fullName} - {PROFILE.role}</span>
-              <span>Built with GSAP · pixel-perfect</span>
+              <span>Built with GSAP</span>
             </footer>
           </div>
         </section>

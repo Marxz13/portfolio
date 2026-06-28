@@ -103,10 +103,8 @@ html:has(.portfolio) {
 
 @media (prefers-reduced-motion: reduce) {
   .portfolio [data-marquee-track] { animation: none !important; }
-  /* Without motion there is no hover-to-reveal, so un-stack the work cards
-     and keep every card fully visible. */
-  .portfolio .work-slot { margin-top: 24px !important; }
-  .portfolio .work-slot:first-child { margin-top: 0 !important; }
+  /* Initiatives: skip the drop-in so switching tabs swaps instantly. */
+  .portfolio .init-detail { animation: none; }
   /* Stack marquees: wrap statically so every logo stays visible. */
   .portfolio .logo-marquee { overflow: visible; -webkit-mask-image: none; mask-image: none; }
   .portfolio .logo-seq { flex-wrap: wrap; }
@@ -129,24 +127,325 @@ html:has(.portfolio) {
 .portfolio .btn-accent { transition: background 0.25s, transform 0.25s; }
 .portfolio .btn-accent:hover { background: var(--ink); transform: translateY(-2px); }
 
-/* The work-card hover motion (slide-to-center + lift, like pulling a folder
-   from a cabinet) is driven imperatively by GSAP in Portfolio.tsx so the
-   centering distance can be measured per layout/viewport. */
-.portfolio .work-card {
+/* ── Initiatives (Work section) ───────────────────────────────────
+   Horizontal tab row + a detail panel whose image grid drops in when the
+   active project changes. Active = hovered/focused/tapped; first by default. */
+.portfolio .init-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.portfolio .init-tab {
+  flex: 1 1 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  text-align: left;
   cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
-.portfolio .work-mover {
-  will-change: transform;
+.portfolio .init-tab.is-active {
+  border-color: var(--ink);
+  background: var(--bg-2);
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 rgba(31, 70, 255, 0.16);
 }
-.portfolio .work-shot {
+.portfolio .init-tab-index {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+.portfolio .init-tab.is-active .init-tab-index { color: var(--accent); }
+.portfolio .init-tab-name {
+  font-family: var(--pixel);
+  font-weight: 600;
+  font-size: clamp(1.1rem, 1.7vw, 1.45rem);
+  line-height: 1;
+  color: var(--muted);
+}
+.portfolio .init-tab.is-active .init-tab-name { color: var(--ink); }
+.portfolio .init-tab-sub {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.portfolio .init-detail {
+  margin-top: clamp(20px, 3vh, 32px);
+  animation: init-drop 0.42s ease both;
+}
+/* The "images come out the bottom" reveal: slide down + fade as the panel
+   remounts on each tab change. */
+@keyframes init-drop {
+  from { opacity: 0; transform: translateY(-14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* auto-fit keeps as many ~200px+ tracks as fit and collapses the rest, so a
+   4-panel project shows a 4-up row, a 2-panel shows 2-up, and a solo shot
+   spans full width - all responsive down to a single column on phones. */
+.portfolio .init-shots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 12px;
+}
+.portfolio .init-shot { will-change: transform; }
+@media (max-width: 720px) {
+  .portfolio .init-tab { flex-basis: 120px; }
+}
+
+/* Screenshots | Architecture toggle in the initiative detail. */
+.portfolio .init-toggle {
+  display: flex;
+  width: fit-content;
+  margin-top: clamp(20px, 3vh, 32px);
+  border: 1px solid var(--line);
+}
+.portfolio .init-toggle-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 8px 16px;
+  background: var(--bg);
+  color: var(--muted);
+  border: none;
   cursor: pointer;
+  transition: background 0.2s ease, color 0.2s ease;
 }
-.portfolio .work-shot-cta {
-  transition: opacity 0.25s ease;
+.portfolio .init-toggle-btn + .init-toggle-btn { border-left: 1px solid var(--line); }
+.portfolio .init-toggle-btn.is-active { background: var(--ink); color: var(--bg); }
+
+/* ── Architecture diagram (on-brand SVG) ─────────────────────────── */
+.portfolio .arch-wrap { margin-top: clamp(20px, 3vh, 32px); overflow-x: auto; }
+.portfolio .arch-svg {
+  display: block;
+  width: 100%;
+  min-width: 560px;
+  height: auto;
+  border: 1px solid var(--ink);
+  background: var(--bg);
 }
-.portfolio .work-shot:hover .work-shot-cta,
-.portfolio .work-shot:focus-visible .work-shot-cta {
-  opacity: 1 !important;
+/* node boxes */
+.portfolio .arch-node rect { fill: var(--bg); stroke: var(--ink); stroke-width: 1.5; }
+.portfolio .arch-node-be rect { stroke: var(--accent); stroke-width: 2; }
+.portfolio .arch-node-auth rect { stroke: var(--accent); }
+.portfolio .arch-node-data rect { fill: var(--bg-2); stroke: var(--muted); }
+.portfolio .arch-node-ext rect { fill: var(--bg-2); stroke: var(--muted); stroke-dasharray: 4 4; }
+.portfolio .arch-node-label {
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 12px;
+  fill: var(--ink);
+}
+.portfolio .arch-node-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  fill: var(--muted);
+}
+/* edge labels */
+.portfolio .arch-edge-label { font-family: var(--mono); font-size: 9px; fill: var(--ink); }
+.portfolio .arch-edge-label-bg { fill: var(--bg); opacity: 0.88; }
+/* legend + note */
+.portfolio .arch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--muted);
+}
+.portfolio .arch-leg { display: inline-flex; align-items: center; gap: 6px; }
+.portfolio .arch-leg i { display: inline-block; width: 18px; height: 0; }
+.portfolio .arch-leg-ink { border-top: 2px solid var(--ink); }
+.portfolio .arch-leg-accent { border-top: 2px solid var(--accent); }
+.portfolio .arch-leg-muted { border-top: 2px solid var(--muted); }
+.portfolio .arch-leg-dash { border-top-style: dashed; }
+.portfolio .arch-note {
+  margin: 12px 0 0;
+  max-width: 70ch;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ── Algorithm showcase ──────────────────────────────────────────── */
+.portfolio .algo-wrap { margin-top: clamp(20px, 3vh, 32px); }
+.portfolio .algo-title {
+  margin: 0;
+  font-family: var(--pixel);
+  font-weight: 600;
+  font-size: clamp(1.1rem, 1.7vw, 1.4rem);
+  letter-spacing: 0.01em;
+}
+.portfolio .algo-summary {
+  margin: 8px 0 0;
+  max-width: 72ch;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+}
+.portfolio .algo-sub {
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.portfolio .algo-head + .arch-wrap { margin-top: clamp(18px, 2.5vh, 28px); }
+.portfolio .algo-factors { margin-top: clamp(22px, 3.5vh, 36px); max-width: 580px; }
+.portfolio .algo-bar-row {
+  display: grid;
+  grid-template-columns: 116px 1fr 38px;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 8px;
+  font-family: var(--mono);
+  font-size: 12px;
+}
+.portfolio .algo-bar-label { color: var(--ink); }
+.portfolio .algo-bar {
+  display: block;
+  height: 10px;
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+}
+.portfolio .algo-bar i { display: block; height: 100%; background: var(--accent); }
+.portfolio .algo-bar-val { color: var(--muted); text-align: right; }
+.portfolio .algo-groups {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 22px;
+  margin-top: clamp(24px, 4vh, 40px);
+}
+.portfolio .algo-group ul { margin: 0; padding-left: 16px; }
+.portfolio .algo-group li {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  line-height: 1.65;
+  color: var(--muted);
+}
+.portfolio .algo-note {
+  margin: clamp(22px, 3.5vh, 34px) 0 0;
+  max-width: 82ch;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+/* Worked example: buyer storyboard + a mock re-ranked feed. */
+.portfolio .algo-example {
+  margin-top: clamp(26px, 4vh, 44px);
+  padding-top: clamp(22px, 3.5vh, 34px);
+  border-top: 1px solid var(--line);
+}
+.portfolio .algo-story {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  gap: 8px;
+}
+.portfolio .algo-step-wrap { display: flex; align-items: center; gap: 8px; }
+.portfolio .algo-step {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 168px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.portfolio .algo-step-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--ink);
+  color: var(--accent);
+}
+.portfolio .algo-step-title {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+}
+.portfolio .algo-step-detail {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+.portfolio .algo-arrow { color: var(--muted); flex: none; }
+
+.portfolio .algo-feed-title {
+  margin: clamp(20px, 3vh, 30px) 0 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.portfolio .algo-feed {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 10px;
+}
+.portfolio .algo-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+}
+.portfolio .algo-tile.is-boosted {
+  border-color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.portfolio .algo-tile-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.portfolio .algo-tile-name {
+  font-family: var(--mono);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.portfolio .algo-tile-tag {
+  flex: none;
+  padding: 2px 7px;
+  border: 1px solid var(--accent);
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.portfolio .algo-tile-reason {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 /* Stack logo marquees in the About section. */
@@ -168,6 +467,44 @@ html:has(.portfolio) {
 .portfolio .stack-logo:hover {
   color: var(--accent);
   border-color: var(--accent);
+}
+
+/* Stack search box: mono input matching the stack-logo chip aesthetic. */
+.portfolio .stack-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  color: var(--muted);
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.portfolio .stack-search:focus-within {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.portfolio .stack-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  color: var(--ink);
+  width: clamp(140px, 22vw, 200px);
+}
+.portfolio .stack-search input::placeholder {
+  color: var(--muted);
+}
+
+/* Filtered results grid (shown in place of the marquees while searching). */
+.portfolio .stack-results {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.portfolio .stack-results .stack-logo {
+  margin-right: 0;
 }
 
 .portfolio .logo-marquee {

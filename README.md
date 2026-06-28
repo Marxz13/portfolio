@@ -134,7 +134,7 @@ One continuous scroll page. Max content width **1280px**, centered, side padding
 - Giant wordmark **`LET'S BUILD.`** (Pixelify 700, `clamp(3.2rem,12vw,9rem)`, line-height 0.84) with the same blue registration echo; `BUILD.` is accent-colored on the front layer.
 - Action row: **email** (dark button, `mailto:`), **GitHub** (ghost button, opens `@Marxz13`), **download cv** (ghost).
 - **Contribution band:** 1px ink border, white fill, hard accent shadow `10px 10px 0 rgba(31,70,255,0.14)`. Header: `This year on GitHub` mono label + `6,000 contributions` (Pixelify number, Space Grotesk caption) + a GitHub link. Below: the `ContributionGraph` heatmap (7-row CSS grid, column flow, 3px gap, 371 cells).
-- Footer: mono 11.5px, `© 2026 MARZ - Fullstack Developer` / `Built with GSAP · pixel-perfect`.
+- Footer: mono 11.5px, `© 2026 MARZ - Fullstack Developer` / `Built with GSAP`.
 
 ## Interactions & Behavior
 - **Hero entrance (on mount):** GSAP timeline (`delay 0.1`, `power3.out`) - eyebrow → wordmark+statement (stagger 0.14) → intro → actions (stagger 0.09); the portrait frame slides in from `x:-20`. A safety timeout (`2900ms`) snaps the timeline to its end if the tab was throttled, so nothing stays hidden.
