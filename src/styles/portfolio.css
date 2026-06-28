@@ -96,16 +96,6 @@ html:has(.portfolio) {
   to   { transform: translateX(-50%); }
 }
 
-/* Hero "AHHHH I WANT PROBLEM" - periodic jitter burst. */
-@keyframes hero-shake {
-  0%, 66%, 100% { transform: translate(0, 0) rotate(0deg); }
-  70% { transform: translate(-3px, 1px) rotate(-1.4deg); }
-  74% { transform: translate(3px, -1px) rotate(1.4deg); }
-  78% { transform: translate(-3px, 1px) rotate(-1.1deg); }
-  82% { transform: translate(2px, 0) rotate(1deg); }
-  86% { transform: translate(0, 0) rotate(0deg); }
-}
-
 /* The de-pixelation effect benefits from nearest-neighbour scaling */
 .portfolio canvas[data-pixel-portrait] {
   image-rendering: pixelated;
@@ -122,7 +112,6 @@ html:has(.portfolio) {
   .portfolio .logo-seq { flex-wrap: wrap; }
   .portfolio .logo-dup { display: none; }
   .portfolio .stack-logo { margin-bottom: 10px; }
-  .portfolio .hero-shout { animation: none; }
 }
 
 /* ── interactions (hover/focus states) ───────────────────────── */
@@ -139,8 +128,6 @@ html:has(.portfolio) {
 
 .portfolio .btn-accent { transition: background 0.25s, transform 0.25s; }
 .portfolio .btn-accent:hover { background: var(--ink); transform: translateY(-2px); }
-
-.portfolio .hero-shout { animation: hero-shake 3s infinite; transform-origin: center; }
 
 /* The work-card hover motion (slide-to-center + lift, like pulling a folder
    from a cabinet) is driven imperatively by GSAP in Portfolio.tsx so the

@@ -309,7 +309,6 @@ export default function Portfolio() {
         .from("[data-hero-statement]", { opacity: 0, y: 24, duration: 0.7 }, "-=0.45")
         .from("[data-hero-text]", { opacity: 0, y: 18, duration: 0.7 }, "-=0.45")
         .from("[data-hero-meta] > *", { opacity: 0, y: 14, duration: 0.6, stagger: 0.09 }, "-=0.45")
-        .from("[data-hero-shout]", { opacity: 0, y: 22, duration: 0.7 }, "-=0.3")
         .from("[data-hero-frame]", { opacity: 0, x: -20, duration: 0.9, ease: "power2.out" }, 0.12);
 
       // safety: snap to end if the timeline never advances (throttled tab)
@@ -617,12 +616,6 @@ export default function Portfolio() {
             </div>
           </div>
 
-          {/* hero bottom - animated shout */}
-          <div data-hero-shout="" style={{ position: "relative", zIndex: 1, marginTop: "clamp(24px,4vh,52px)" }}>
-            <span className="hero-shout" style={{ display: "inline-block", fontFamily: "var(--pixel)", fontWeight: 700, fontSize: "clamp(1.3rem,3.6vw,2.8rem)", letterSpacing: "0.02em", lineHeight: 1, color: "var(--ink)" }}>
-              AHHHHHHHHHHHHHH I WANT <span style={{ color: "var(--accent)" }}>PROBLEM!!</span>
-            </span>
-          </div>
         </header>
 
         {/* ── MARQUEE ─────────────────────────────────────────── */}
